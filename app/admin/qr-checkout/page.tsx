@@ -5,14 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { QRScanner } from '@/components/qr/qr-scanner'
-import { User, BookOpen, CheckCircle, XCircle, Calendar } from 'lucide-react'
+import { User, BookOpen, CheckCircle, XCircle, Calendar, Phone, MapPin, CreditCard, AlertTriangle, DollarSign } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface ScannedUser {
   id: string
   name: string
   email: string
+  phone: string | null
+  address: string | null
+  membershipType: string | null
+  membershipStart: Date | null
   membershipExpiry: Date | null
+  activeBorrows: number
+  totalFines: number
   isExpired: boolean
 }
 
@@ -190,21 +196,82 @@ export default function QRCheckoutPage() {
           </CardHeader>
           <CardContent>
             {scannedUser ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold">{scannedUser.name}</p>
+              <div className="space-y-4">
+                {/* Header with Name and Status */}
+                <div className="flex items-start justify-between pb-3 border-b">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-bold text-lg">{scannedUser.name}</p>
+                      <Badge variant="outline" className="text-xs">
+                        ID: {scannedUser.id}
+                      </Badge>
+                    </div>
                     <p className="text-sm text-slate-600">{scannedUser.email}</p>
-                    {scannedUser.membershipExpiry && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        Expires: {format(new Date(scannedUser.membershipExpiry), 'MMM d, yyyy')}
+                    {scannedUser.phone && (
+                      <p className="text-sm text-slate-600 flex items-center gap-1 mt-1">
+                        <Phone className="w-3 h-3" />
+                        {scannedUser.phone}
                       </p>
                     )}
                   </div>
-                  <CheckCircle className="w-8 h-8 text-green-600" />
+                  <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0" />
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setScannedUser(null)}>
-                  Clear
+
+                {/* Membership Info */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-start gap-2">
+                    <CreditCard className="w-4 h-4 text-teal-600 mt-1" />
+                    <div>
+                      <p className="text-xs text-slate-500">Type</p>
+                      <p className="text-sm font-medium capitalize">
+                        {scannedUser.membershipType || 'Standard'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <Calendar className="w-4 h-4 text-teal-600 mt-1" />
+                    <div>
+                      <p className="text-xs text-slate-500">Expires</p>
+                      <p className="text-sm font-medium">
+                        {scannedUser.membershipExpiry
+                          ? format(new Date(scannedUser.membershipExpiry), 'MMM d, yyyy')
+                          : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <BookOpen className="w-4 h-4 text-teal-600 mt-1" />
+                    <div>
+                      <p className="text-xs text-slate-500">Active Borrows</p>
+                      <p className="text-sm font-medium">{scannedUser.activeBorrows}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <DollarSign className="w-4 h-4 text-teal-600 mt-1" />
+                    <div>
+                      <p className="text-xs text-slate-500">Unpaid Fines</p>
+                      <p className={`text-sm font-medium ${scannedUser.totalFines > 0 ? 'text-red-600' : ''}`}>
+                        ${scannedUser.totalFines.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Warnings */}
+                {scannedUser.totalFines > 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                    <p className="text-xs text-yellow-800">
+                      Member has outstanding fines
+                    </p>
+                  </div>
+                )}
+
+                <Button variant="outline" size="sm" onClick={() => setScannedUser(null)} className="w-full">
+                  Clear Member
                 </Button>
               </div>
             ) : scanning === 'user' ? (

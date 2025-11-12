@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { QRCodeDisplay } from '@/components/qr/qr-code-display'
+import { Button } from '@/components/ui/button'
+import { LibraryCard } from '@/components/qr/library-card'
 import { User, Mail, Phone, MapPin, Calendar, CreditCard } from 'lucide-react'
 import { format } from 'date-fns'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 
 export default function ProfilePage() {
   const { data: session } = useSession()
@@ -105,60 +107,62 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Membership Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Membership Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3 text-slate-700">
-            <CreditCard className="w-5 h-5 text-slate-400" />
-            <div>
-              <p className="text-sm text-slate-500">Membership Type</p>
-              <p className="font-medium capitalize">{user?.membershipType || 'N/A'}</p>
-            </div>
-          </div>
+      {/* Membership Card */}
+      {user && <LibraryCard user={user} />}
 
-          <div className="flex items-center gap-3 text-slate-700">
-            <Calendar className="w-5 h-5 text-slate-400" />
-            <div>
-              <p className="text-sm text-slate-500">Member Since</p>
-              <p className="font-medium">
-                {user?.membershipStart
-                  ? format(new Date(user.membershipStart), 'MMMM d, yyyy')
-                  : 'N/A'}
-              </p>
+      {/* Membership Management */}
+      {user && (!user.membershipExpiry || new Date(user.membershipExpiry) < new Date()) && (
+        <Card className="border-teal-200 bg-teal-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">
+                  {user.membershipExpiry ? 'Membership Expired' : 'No Active Membership'}
+                </h3>
+                <p className="text-slate-600 mt-1">
+                  Subscribe to a membership plan to start borrowing books
+                </p>
+              </div>
+              <Link href="/member/membership">
+                <Button className="bg-teal-600 hover:bg-teal-700">
+                  Subscribe Now
+                </Button>
+              </Link>
             </div>
-          </div>
+          </CardContent>
+        </Card>
+      )}
 
-          <div className="flex items-center gap-3 text-slate-700">
-            <Calendar className="w-5 h-5 text-slate-400" />
-            <div>
-              <p className="text-sm text-slate-500">Membership Expires</p>
-              <p className="font-medium">
-                {user?.membershipExpiry
-                  ? format(new Date(user.membershipExpiry), 'MMMM d, yyyy')
-                  : 'N/A'}
-              </p>
+      {/* Renew Membership */}
+      {user && user.membershipExpiry && (() => {
+        const expiryDate = new Date(user.membershipExpiry)
+        const now = new Date()
+        const daysLeft = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+        return daysLeft <= 30 && daysLeft > 0
+      })() && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">Membership Expiring Soon</h3>
+                <p className="text-slate-600 mt-1">
+                  Your membership expires on {format(new Date(user.membershipExpiry!), 'MMMM dd, yyyy')}
+                </p>
+              </div>
+              <Link href="/member/membership">
+                <Button className="bg-yellow-600 hover:bg-yellow-700">
+                  Renew Membership
+                </Button>
+              </Link>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* My QR Code */}
-      {user && (
-        <QRCodeDisplay
-          userId={user.id}
-          title="My Library QR Code"
-          description="Show this QR code to library staff for quick checkout and returns"
-        />
+          </CardContent>
+        </Card>
       )}
 
       {/* Note */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-800">
-          <strong>Note:</strong> To update your personal information or renew your membership,
-          please contact the library administrator.
+          <strong>Note:</strong> To update your personal information, please contact the library administrator.
         </p>
       </div>
     </div>

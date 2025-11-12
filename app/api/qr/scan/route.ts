@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth/config'
 import { canAccessAdmin } from '@/lib/auth/roles'
 import { db } from '@/lib/db'
-import { users, bookCopies, books, authors } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { users, bookCopies, books, authors, transactions, fines } from '@/lib/db/schema'
+import { eq, and, isNull, sql } from 'drizzle-orm'
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,8 +28,11 @@ export async function POST(req: NextRequest) {
           id: users.id,
           name: users.name,
           email: users.email,
+          phone: users.phone,
+          address: users.address,
           role: users.role,
           membershipType: users.membershipType,
+          membershipStart: users.membershipStart,
           membershipExpiry: users.membershipExpiry,
           qrCode: users.qrCode,
         })
@@ -46,9 +49,29 @@ export async function POST(req: NextRequest) {
         ? new Date(user.membershipExpiry) < new Date()
         : false
 
+      // Get active borrows count
+      const activeBorrowsResult = await db
+        .select({ count: sql<number>`COUNT(*)::int` })
+        .from(transactions)
+        .where(and(eq(transactions.userId, user.id), isNull(transactions.returnDate)))
+
+      const activeBorrows = activeBorrowsResult[0]?.count || 0
+
+      // Get total unpaid fines
+      const totalFinesResult = await db
+        .select({ total: sql<number>`COALESCE(SUM(amount - paid_amount), 0)::float` })
+        .from(fines)
+        .where(eq(fines.userId, user.id))
+
+      const totalFines = totalFinesResult[0]?.total || 0
+
       return NextResponse.json({
         type: 'user',
-        data: user,
+        data: {
+          ...user,
+          activeBorrows,
+          totalFines,
+        },
         isExpired,
       })
     } else if (qrCode.startsWith('BOOK_')) {
