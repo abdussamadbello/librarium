@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { QRCodeDisplay } from '@/components/qr/qr-code-display'
 import { User, Mail, Phone, MapPin, Calendar, CreditCard } from 'lucide-react'
 import { format } from 'date-fns'
 import { useSession } from 'next-auth/react'
@@ -143,6 +144,15 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* My QR Code */}
+      {user && (
+        <QRCodeDisplay
+          userId={user.id}
+          title="My Library QR Code"
+          description="Show this QR code to library staff for quick checkout and returns"
+        />
+      )}
 
       {/* Note */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

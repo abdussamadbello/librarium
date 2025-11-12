@@ -19,6 +19,7 @@ export const users = pgTable('users', {
   phone: text('phone'),
   address: text('address'),
   dateOfBirth: timestamp('date_of_birth', { mode: 'date' }),
+  qrCode: text('qr_code').unique(), // Unique QR code for member checkout
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 });
@@ -105,6 +106,7 @@ export const bookCopies = pgTable('book_copies', {
   status: text('status').notNull().default('available'), // available, borrowed, in_repair, lost
   condition: text('condition'), // new, good, fair, poor
   notes: text('notes'),
+  qrCode: text('qr_code').unique(), // Unique QR code for book copy checkout
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
 });
 
