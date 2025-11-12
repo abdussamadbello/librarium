@@ -195,6 +195,19 @@ export const activityLog = pgTable('activity_log', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
 });
 
+// Notifications table
+export const notifications = pgTable('notifications', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(), // due_soon, overdue, fine_added, reservation_ready, general
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  link: text('link'),
+  isRead: boolean('is_read').default(false),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
 // ============================================================================
 // RELATIONS
 // ============================================================================
@@ -207,6 +220,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   customShelves: many(customShelves),
   favorites: many(favorites),
   reservations: many(reservations),
+  notifications: many(notifications),
 }));
 
 export const booksRelations = relations(books, ({ one, many }) => ({
