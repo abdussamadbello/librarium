@@ -1,0 +1,259 @@
+Product Requirements Document (PRD): Librarium
+
+Version: 1.2 (Expanded)
+Date: November 12, 2025
+Status: In Development
+
+1. Introduction
+
+1.1. Product Name
+
+Library Nexus
+
+1.2. Goal
+
+To build a comprehensive, dual-interface system consisting of a Library Management System (LMS) Admin Portal and a Public Member-Facing App.
+
+The primary goal is to replace disparate, outdated, or manual library management processes with a single, cohesive, data-driven ecosystem. Current systems often suffer from inefficient manual tracking, a lack of member engagement, and disconnected data silos (e.g., member data being separate from catalog data). Library Nexus will solve this by streamlining all back-end library operations for staff—from cataloging to circulation—and providing a modern, beautiful, and engaging "discover" experience for patrons that rivals popular consumer applications. This unified system will improve operational efficiency, boost patron engagement, and provide actionable insights through comprehensive reporting.
+
+2. User Personas
+
+This system serves two primary user groups, which can be broken down into more specific roles:
+
+User Group
+
+Sub-Role
+
+Primary Goal
+
+Admin / Librarian
+
+Circulation Desk Staff
+
+Efficiently manage all member-facing transactions: quickly issue and return books, manage member accounts, handle fine payments, and answer inquiries.
+
+(Admin)
+
+Cataloging Librarian
+
+Accurately add, edit, and manage all book metadata, including individual copy status (e.g., "Available," "In Repair"), shelf locations, and genre classifications.
+
+(Admin)
+
+Library Director / Manager
+
+View high-level, aggregate reports and analytics on collection performance, member activity, circulation trends, and staff efficiency to make strategic decisions.
+
+Member / Patron
+
+Casual Reader
+
+Discover new and interesting books with minimal effort. They rely on recommendations, "Staff Picks," and browsing beautiful visual categories.
+
+(Patron)
+
+Student / Researcher
+
+Find specific items using a powerful search (by ISBN, author, title). They need to manage their borrowed items, track history for citations, and place holds.
+
+(Patron)
+
+Parent / Guardian
+
+Find appropriate books for children, manage linked family accounts, and easily track due dates for multiple cards to avoid fines.
+
+3. Design System: "Illumination" Theme
+
+This design system is the single source of truth for all visual elements, ensuring a cohesive brand identity.
+
+3.1. Thematic Focus
+
+Illumination & Discovery. The design will use light, knowledge, and journey as guiding concepts. This theme translates directly into the UI:
+
+Admin Portal (Illumination): This represents clarity, focus, and precision. The UI will be minimal, clean, and data-forward. It is the "source of knowledge," so data is presented as fact, clearly and accessibly. This is achieved through generous whitespace, strict data grids, high-contrast text, and a professional, uncluttered layout.
+
+Member App (Discovery): This represents warmth, curiosity, and serendipity. The UI is designed to feel like exploring a curated, personal bookstore. It is the "journey of discovery," guiding the user through the collection with large, beautiful cover art, playful micro-interactions (like the "lift" on hover), and engaging, personalized carousels.
+
+3.2. Color Palette
+
+Color Role
+
+Hex Code (Example)
+
+Usage / Mood
+
+Primary Teal
+
+#00798C
+
+Brand Core. Used for the Member app's hero section, Admin active states, and key navigation. Stable, deep, and trustworthy.
+
+Discovery Gold
+
+#E8A24C
+
+Member Accent. The "Fun" color. Used for "All Categories" button, recommendations, and interactive highlights. Warm & Engaging.
+
+Soft Neutral
+
+#F7F7F7
+
+Background. Main page background for both apps. Softer than pure white, easier on the eyes, and allows white cards to "pop."
+
+Card White
+
+#FFFFFF
+
+Content Cards. Used for all content containers (carousels, tables, forms) to "float" them above the neutral background.
+
+Admin Dark
+
+#1F2937 (slate-800)
+
+Admin Sidebar. Provides a high-contrast, professional-grade navigation separate from the content.
+
+Deep Text
+
+#212529
+
+Main text color for high readability.
+
+Color Application & Accessibility: The palette will be applied using a standard UI ratio (e.g., 80% Neutral/White, 10% Primary Teal, 10% Discovery Gold) to maintain a clean feel. All text on colored backgrounds, especially for buttons and interactive elements, must pass WCAG AA contrast ratios to ensure accessibility for all users.
+
+3.3. Typography
+
+Role
+
+Font Family (Suggestion)
+
+Usage
+
+Primary (Body/Admin)
+
+Inter
+
+All UI labels, buttons, form fields, and table data. Its large x-height and clear letterforms make it perfect for legibility in dense data environments like the Admin panel. It will also serve as the body copy (e.g., book descriptions) in the Member app for consistency.
+
+Secondary (Member Headers)
+
+Poppins or Sora
+
+Reserved for h1, h2, and h3 on the Member app only. Its rounded, friendly geometry will create the "engaging" feel for headers like "Discover your next..." and "Book Recommendations."
+
+4. Application 1: Member-Facing App (library-member-app.jsx)
+
+4.1. Layout
+
+Two-Column Layout: Fixed sidebar on the left, main scrolling content area on the right. The sidebar will be designed to be collapsible on tablet/desktop to maximize content area and will default to a bottom-bar navigation on mobile.
+
+Sidebar Navigation:
+
+Logo/Brand: "Library Nexus"
+
+Navigation Links: Discover, Category, My Library, Favorites, History.
+
+User Profile Card: Pinned to the bottom of the sidebar. It will display the user's avatar and name. It will also provide a quick-glance stat (e.g., "2 Books Borrowed"). Clicking this card will navigate to a full profile and account settings page.
+
+4.2. Key Features & Design
+
+Discover Page (PAT-1, PAT-3):
+
+Hero Search Section: A prominent, full-width section with a teal gradient background.
+
+Contains the main <h1> title ("Discover your next great read").
+
+Contains the central search bar, which will support full-text search, ISBN, author, and title. It will feature an autocomplete/suggestion dropdown as the user types.
+
+Contains the "Discovery Gold" (amber-500) "All Categories" button for filtering.
+
+Content Cards: All content carousels and grids (Book Recommendation, Recently Added, Book Category) will be placed on bg-white cards with a shadow-sm to lift them off the neutral-100 background. These carousels will be dynamically populated (e.g., "Staff Picks," "New York Times Bestsellers," "Recently Returned," "Based on Your Favorites").
+
+Category Page (PAT-2):
+
+This will be a "Genre Hub" rather than a simple grid. It will allow users to visually browse top-level categories, then drill down into sub-genres (e.g., Fiction -> Science Fiction -> Space Opera). Each category page will feature a "Trending" and "New in this Category" carousel.
+
+Personalization Pages (PAT-4):
+
+My Library Page: Displays a clear, visual list of all books the member currently has borrowed. Each entry will feature the book cover, title, and a prominent "Days Left" countdown. A "Renew" button will be visible for all eligible items.
+
+Favorites Page: A simple, beautiful grid of all book covers the user has "favorited."
+
+History Page: A full, searchable, and sortable table of all past checkouts, allowing researchers and avid readers to track their borrowing history.
+
+Custom Shelves (PAT-5):
+
+A key engagement feature. From any "Favorites" page or search result, a user can add a book to a custom shelf. Users can create, name, and manage these shelves (e.g., "Summer Reading," "Research for Thesis"). Shelves can be kept private or made public to share with other members.
+
+Book Card Aesthetics:
+
+"Floating Covers": Book cards will use multi-layered shadows and a "lift" (-translate-y-1) on hover to feel interactive and premium.
+
+"Book DNA" Tags: Small, pill-shaped tags for metadata (e.g., "Finance," "Self-Help," "Award Winner") to provide quick context.
+
+5. Application 2: Admin Portal (library-admin-portal.jsx)
+
+5.1. Layout
+
+Two-Column Layout: Fixed dark sidebar (bg-slate-800) on the left, main content area (with header) on the right.
+
+Header:
+
+Sleek & Compact: A slim h-12 (48px) header.
+
+Balanced Spacing: Uses space-x-6 for the right-hand controls (Search, Bell, User) to prevent a cramped look. The Bell icon is for system notifications (e.g., "New book shipment processed"). The User menu provides "My Profile" and "Logout."
+
+Sidebar Navigation (ADM-9):
+
+This navigation menu will be role-based. A "Circulation Desk" staff member, for example, might not see "Reports / Analytics" or "Staff Management," which would be reserved for "Library Director" roles.
+
+5.2. Key Features & Design
+
+Dashboard Page (Default View) (ADM-1):
+
+Stat Cards: Four key metric cards (Total Books, Borrowed Books, Overdue Books, Total Members). These cards are clickable, leading directly to the relevant, pre-filtered report (e.g., clicking the "Overdue Books" card navigates to the full "Overdue Books" management page).
+
+"Quick Actions" Hub: A tabbed interface for all primary administrative tasks.
+
+Overview Tab (Default):
+
+Overdue Books Table (ADM-2): A sortable table of all overdue items.
+
+Recent Activity Feed (ADM-3): A live feed of all library transactions.
+
+Book Categories Distribution: An interactive chart (e.g., Pie or Donut). Clicking a slice (e.g., "Fiction") will drill down to a sub-genre report or a filtered list.
+
+Transaction & Registration Forms:
+
+Form Principle: All forms will use real-time validation (e.g., checking if an ISBN or Member Email already exists in the database as the user types, preventing duplicates).
+
+Add New Book Form (ADM-4): A full-page form capturing all metadata from the mockups (Title, Author, ISBN, Category, etc.).
+
+Register New Member Form (ADM-5): A full-page form for new member details.
+
+Issue Book(s) Form (ADM-6): A two-column form. The member search will be live, showing member name, ID, and photo. The book search will allow for scanning a barcode/ISBN or manual title/ISBN entry. The "Preview" card is a final check to prevent errors.
+
+Return Book(s) Form (ADM-7): A two-column form. Will automatically calculate and display any overdue fines upon selection of the book being returned, allowing staff to resolve the fine immediately.
+
+Management Pages (from Sidebar):
+
+Manage Books: This will be the core of the catalog, a powerful data grid with features for bulk editing (e.g., change location of 20 books), bulk deletion, and exporting the catalog to CSV. It will also track individual copy status (e.g., Copy 1: "On Loan," Copy 2: "In Repair," Copy 3: "Available").
+
+Manage Members: Will show member status (e.g., "Active," "Expired," "Frozen - Fines Owed"). Will include a link to view each member's full borrowing history, fines, and payment ledger.
+
+Fines & Payments (ADM-8): A dedicated module to track, manage, and process fines. It will integrate with a payment system or, at minimum, log manual cash/card payments. It provides a full ledger of all fines assessed, paid, and waived.
+
+Reports / Analytics: This is the "Library Director" view. Will include pre-built reports on: "Most/Least Popular Books by Genre," "Circulation by Time of Day/Week," "Member Demographics," and a "Collection Weeding" report (identifying old/unpopular books to remove).
+
+6. Success Metrics
+
+Admin Efficiency: Reduction in time-on-task for issuing a book or registering a new member. This will be measured by usability testing and anonymous performance data (e.g., average time from opening the "Issue Book" tab to confirmation). Target: 20% faster transaction time.
+
+Patron Engagement: We will track a new set of Key Performance Indicators (KPIs):
+
+Increase in "Favorites" clicks (Target: 25% increase Quarter-over-Quarter).
+
+"Custom Shelf" creations (Target: 10% of monthly active users create at least one shelf within 6 months of launch).
+
+Increase in "Session Duration" on the member app.
+
+Data Integrity: Reduction in overdue books (tracked on the Dashboard) is the primary metric. We will also track a reduction in data entry errors (e.g., duplicate member profiles, books without ISBNs) as a measure of the new system's superior validation. Target: 50% decrease in overdue books within 6 months.
