@@ -1,0 +1,770 @@
+import React, { useState } from 'react';
+import {
+  Home,
+  Book,
+  Users,
+  UserPlus,
+  BookOpen,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  AlertTriangle,
+  FileText,
+  Settings,
+  Mail,
+  BarChart2,
+  Bell,
+  Search,
+  ChevronDown,
+  ChevronRight,
+  Upload,
+  Calendar,
+  X,
+  Plus,
+} from 'lucide-react';
+
+// --- Mock Data ---
+
+const mockStats = {
+  totalBooks: 12450,
+  borrowedBooks: 680,
+  overdueBooks: 24,
+  totalMembers: 15000,
+};
+
+const mockOverdueBooks = [
+  {
+    id: 1,
+    title: 'The 5 AM Club',
+    borrower: 'J.A. Tharindu Jayasinghe',
+    dueDate: '2025-04-28',
+    daysOverdue: 12,
+    fine: 80.0,
+  },
+  {
+    id: 2,
+    title: 'The Art of War',
+    borrower: 'K.G. Chamodi Fernando',
+    dueDate: '2025-04-30',
+    daysOverdue: 10,
+    fine: 70.0,
+  },
+  {
+    id: 3,
+    title: 'Rich Dad Poor Dad',
+    borrower: 'S.R. Sahan Modushanka',
+    dueDate: '2025-05-02',
+    daysOverdue: 8,
+    fine: 70.0,
+  },
+  {
+    id: 4,
+    title: 'Atomic Habits',
+    borrower: 'K.M. Dinithi Abeysekara',
+    dueDate: '2025-05-04',
+    daysOverdue: 5,
+    fine: 62.5,
+  },
+  {
+    id: 5,
+    title: 'Thinking, Fast and Slow',
+    borrower: 'J.P. Sanduni Ranasinghe',
+    dueDate: '2025-05-06',
+    daysOverdue: 3,
+    fine: 50.0,
+  },
+];
+
+const mockRecentActivity = [
+  {
+    id: 1,
+    text: 'P. Nipuni Fernando borrowed The Great Gatsby by F. Scott Fitzgerald.',
+    time: '2 second ago',
+    type: 'issue',
+  },
+  {
+    id: 2,
+    text: 'Pathum Silva returned The Hobbit by J.R.R. Tolkien.',
+    time: '12 second ago',
+    type: 'return',
+  },
+  {
+    id: 3,
+    text: 'Nishal Fernando added book To Kill a Mockingbird by Harper Lee.',
+    time: '1 hour ago',
+    type: 'add',
+  },
+  {
+    id: 4,
+    text: 'Ayesha Wijesinghe has an overdue return for Pride and Prejudice by Jane Austen.',
+    time: '16 hours ago',
+    type: 'overdue',
+  },
+];
+
+// --- Layout Components ---
+
+/**
+ * Sidebar Component
+ * The main navigation panel for the admin portal.
+ */
+const Sidebar = ({ currentPage, setCurrentPage }) => {
+  const navItems = [
+    { label: 'Dashboard', icon: Home, page: 'dashboard' },
+    { label: 'Manage Books', icon: Book, page: 'manage-books' },
+    { label: 'Manage Members', icon: Users, page: 'manage-members' },
+    { label: 'Manage Authors', icon: UserPlus, page: 'manage-authors' },
+    { label: 'Manage Category', icon: BookOpen, page: 'manage-category' },
+    { label: 'Issued Books', icon: ArrowRight, page: 'issued-books' },
+    { label: 'Returned Books', icon: ArrowLeft, page: 'returned-books' },
+    { label: 'Overdue Books', icon: AlertTriangle, page: 'overdue-books' },
+    { label: 'Fines & Payments', icon: FileText, page: 'fines-payments' },
+    { label: 'Staff Management', icon: Users, page: 'staff-management' },
+    { label: 'Email', icon: Mail, page: 'email' },
+    { label: 'Reports / Analytics', icon: BarChart2, page: 'reports' },
+    { label: 'Settings', icon: Settings, page: 'settings' },
+  ];
+
+  return (
+    <div className="w-64 bg-slate-800 text-slate-300 flex flex-col h-screen">
+      {/* Logo */}
+      <div className="flex items-center justify-center h-16 shadow-md bg-slate-900">
+        <BookOpen className="w-6 h-6 text-white" />
+        <span className="text-xl font-semibold text-white ml-2">LMS</span>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+        {navItems.map((item) => (
+          <button
+            key={item.page}
+            onClick={() => setCurrentPage(item.page)}
+            className={`flex items-center w-full px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+              currentPage === item.page
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <item.icon className="w-5 h-5 mr-3" />
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+};
+
+/**
+ * Header Component
+ * The top bar with search, user info, and notifications.
+ */
+const Header = () => (
+  <header className="flex-1 flex items-center justify-between h-12 bg-white shadow-sm px-4">
+    {/* Welcome Message */}
+    <div>
+      <h1 className="text-sm font-semibold text-slate-800">Welcome! Admin</h1>
+      <p className="text-xs text-slate-500">
+        {new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long',
+        })}
+      </p>
+    </div>
+
+    {/* Search & User */}
+    <div className="flex items-center space-x-6">
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search books, authors, or members..."
+          className="w-64 bg-slate-100 rounded-full py-1.5 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+      </div>
+      <button className="text-slate-500 hover:text-slate-800">
+        <Bell className="w-4 h-4" />
+      </button>
+      <div className="flex items-center space-x-2">
+        <img
+          className="w-7 h-7 rounded-full object-cover"
+          src="https://placehold.co/100x100/6B7280/FFF?text=RA"
+          alt="Admin User"
+        />
+        <div>
+          <div className="font-semibold text-sm text-slate-800">
+            Ravindu Perera
+          </div>
+          <div className="text-xs text-slate-500">Admin</div>
+        </div>
+        <ChevronDown className="w-4 h-4 text-slate-500" />
+      </div>
+    </div>
+  </header>
+);
+
+// --- Form Field Components ---
+
+const FormInput = ({ label, id, type = 'text', placeholder, optional }) => (
+  <div className="flex-1">
+    <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
+      {label} {optional && <span className="text-xs text-slate-500">(optional)</span>}
+    </label>
+    <input
+      type={type}
+      id={id}
+      placeholder={placeholder}
+      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  </div>
+);
+
+const FormSelect = ({ label, id, children, optional }) => (
+  <div className="flex-1">
+    <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
+      {label} {optional && <span className="text-xs text-slate-500">(optional)</span>}
+    </label>
+    <select
+      id={id}
+      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      {children}
+    </select>
+  </div>
+);
+
+const FormTextArea = ({ label, id, placeholder, optional }) => (
+  <div className="flex-1">
+    <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
+      {label} {optional && <span className="text-xs text-slate-500">(optional)</span>}
+    </label>
+    <textarea
+      id={id}
+      placeholder={placeholder}
+      rows="4"
+      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    ></textarea>
+  </div>
+);
+
+const FormUpload = ({ label, id, optional }) => (
+  <div className="flex-1">
+    <label className="block text-sm font-medium text-slate-700 mb-1">
+      {label} {optional && <span className="text-xs text-slate-500">(optional)</span>}
+    </label>
+    <div className="flex items-center justify-center w-full">
+      <label
+        htmlFor={id}
+        className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100"
+      >
+        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+          <Upload className="w-8 h-8 mb-3 text-slate-400" />
+          <p className="mb-2 text-sm text-slate-500">
+            <span className="font-semibold">Click to upload</span> or drag & drop
+          </p>
+          <p className="text-xs text-slate-500">PNG, JPG (MAX. 800x400px)</p>
+        </div>
+        <input id={id} type="file" className="hidden" />
+      </label>
+    </div>
+  </div>
+);
+
+// --- Page Components ---
+
+/**
+ * Dashboard Overview
+ * The default view for the dashboard
+ */
+const DashboardOverview = () => (
+  <div className="space-y-6">
+    {/* Overdue Books Table */}
+    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+      <h3 className="text-lg font-semibold text-slate-800 mb-4">Overdue Books</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left text-slate-500">
+          <thead className="text-xs text-slate-700 uppercase bg-slate-50">
+            <tr>
+              <th scope="col" className="px-6 py-3">Book Title</th>
+              <th scope="col" className="px-6 py-3">Borrower</th>
+              <th scope="col" className="px-6 py-3">Due Date</th>
+              <th scope="col" className="px-6 py-3">Days Overdue</th>
+              <th scope="col" className="px-6 py-3">Fine (LKR)</th>
+              <th scope="col" className="px-6 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mockOverdueBooks.map((book) => (
+              <tr key={book.id} className="bg-white border-b">
+                <td className="px-6 py-4 font-medium text-slate-900">{book.title}</td>
+                <td className="px-6 py-4">{book.borrower}</td>
+                <td className="px-6 py-4">{book.dueDate}</td>
+                <td className="px-6 py-4">
+                  <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                    {book.daysOverdue} Days
+                  </span>
+                </td>
+                <td className="px-6 py-4">{book.fine.toFixed(2)}</td>
+                <td className="px-6 py-4 flex space-x-2">
+                  <button className="text-blue-600 hover:text-blue-800">
+                    <Bell className="w-4 h-4" />
+                  </button>
+                  <button className="text-slate-600 hover:text-slate-800">
+                    <Check className="w-4 h-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    {/* Charts & Activity */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Book Categories Distribution */}
+      <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">Book Categories Distribution</h3>
+        <div className="flex items-center justify-center h-64 bg-slate-50 rounded-lg">
+          <p className="text-slate-500">Chart Placeholder</p>
+          {/* A real chart (e.g., from Chart.js or Recharts) would go here */}
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">Recent Activity</h3>
+        <ul className="space-y-4">
+          {mockRecentActivity.map((activity) => (
+            <li key={activity.id} className="flex space-x-3">
+              <div className={`p-1.5 rounded-full h-fit mt-1 ${
+                activity.type === 'issue' ? 'bg-blue-100 text-blue-600' :
+                activity.type === 'return' ? 'bg-green-100 text-green-600' :
+                activity.type === 'add' ? 'bg-purple-100 text-purple-600' :
+                'bg-red-100 text-red-600'
+              }`}>
+                {activity.type === 'issue' && <ArrowRight className="w-3 h-3" />}
+                {activity.type === 'return' && <ArrowLeft className="w-3 h-3" />}
+                {activity.type === 'add' && <Plus className="w-3 h-3" />}
+                {activity.type === 'overdue' && <AlertTriangle className="w-3 h-3" />}
+              </div>
+              <div>
+                <p className="text-sm text-slate-700">{activity.text}</p>
+                <p className="text-xs text-slate-500">{activity.time}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+);
+
+/**
+ * Add New Book Form
+ */
+const AddNewBookForm = () => (
+  <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+    <h3 className="text-lg font-semibold text-slate-800 mb-6">Add New Book</h3>
+    <form className="space-y-6">
+      <div className="flex space-x-6">
+        <FormInput label="Book Title" id="bookTitle" placeholder="Enter the full title of the book" />
+        <FormInput label="Author Name" id="authorName" placeholder="Enter primary author name" />
+      </div>
+      <div className="flex space-x-6">
+        <FormInput label="Multiple Authors Names" id="multiAuthors" placeholder="Enter multiple authors names if available" optional />
+        <FormInput label="ISBN Number" id="isbn" placeholder="Enter ISBN number of the book" />
+      </div>
+      <div className="flex space-x-6">
+        <FormSelect label="Main Category / Genre" id="mainCategory">
+          <option>Choose an category / genre</option>
+          <option>Fiction</option>
+          <option>Non-Fiction</option>
+        </FormSelect>
+        <FormSelect label="Sub Category / Genre" id="subCategory">
+          <option>Choose an sub category / genre</option>
+          <option>Science Fiction</option>
+          <option>History</option>
+        </FormSelect>
+      </div>
+      <div className="flex space-x-6">
+        <FormInput label="Publication Year" id="pubYear" placeholder="Enter publication year of the book" />
+        <FormInput label="Publisher" id="publisher" placeholder="Enter publisher's name" optional />
+      </div>
+      <div className="flex space-x-6">
+        <FormInput label="Book Language" id="language" placeholder="e.g. English, Sinhala & etc..." />
+        <FormInput label="Shelf Location" id="shelf" placeholder="e.g. A-3, Row B" optional />
+      </div>
+      <div className="flex space-x-6">
+        <FormInput label="Quantity Available" id="quantity" type="number" placeholder="Enter the total number of copies" />
+        <FormUpload label="Book Cover Image" id="coverImage" optional />
+      </div>
+      <FormTextArea label="Description" id="description" placeholder="Type your message here" optional />
+      
+      <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+        <button type="button" className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Cancel</button>
+        <button type="submit" className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm">Confirm Book</button>
+      </div>
+    </form>
+  </div>
+);
+
+/**
+ * Register New Member Form
+ */
+const RegisterNewMemberForm = () => (
+  <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+    <h3 className="text-lg font-semibold text-slate-800 mb-6">Register New Member</h3>
+    <form className="space-y-6">
+      <div className="flex space-x-6">
+        <FormInput label="First Name" id="firstName" placeholder="e.g. Jason" />
+        <FormInput label="Last Name" id="lastName" placeholder="e.g. Lee" />
+      </div>
+      <div className="flex space-x-6">
+        <FormInput label="Email Address" id="email" type="email" placeholder="example@gmail.com" />
+        <FormInput label="Member Id" id="memberId" placeholder="Auto-generated" disabled />
+      </div>
+      <div className="flex space-x-6">
+        <FormInput label="Phone Number" id="phone" placeholder="07x xxx xxxx" />
+        <FormInput label="Date of Birth" id="dob" type="date" />
+      </div>
+      <div className="flex space-x-6">
+        <FormSelect label="Gender Identity" id="gender">
+          <option>Select your gender identity</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Other</option>
+        </FormSelect>
+        <FormInput label="Address" id="address" placeholder="e.g. No 350 Fifth Avenue New York, NY 10118" />
+      </div>
+      <div className="flex space-x-6">
+        <FormSelect label="Membership Type" id="membershipType">
+          <option>Select membership type</option>
+          <option>Standard</option>
+          <option>Premium</option>
+          <option>Student</option>
+        </FormSelect>
+        <FormInput label="Start Date" id="startDate" type="date" />
+      </div>
+      <div className="flex space-x-6">
+        <FormUpload label="Profile Picture" id="profilePic" optional />
+        <FormInput label="Expiry Date" id="expiryDate" type="date" />
+      </div>
+      <FormTextArea label="Description" id="memberDescription" placeholder="Type any special remarks or restrictions" optional />
+
+      <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+        <button type="button" className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Cancel</button>
+        <button type="submit" className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm">Confirm Member</button>
+      </div>
+    </form>
+  </div>
+);
+
+/**
+ * Issue / Return Book Preview
+ * A reusable component for the right-side preview.
+ */
+const BookTransactionPreview = ({ title, member, books, dates, note }) => (
+  <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+    <h3 className="text-lg font-semibold text-slate-800 mb-6">{title}</h3>
+    
+    {/* Member Details */}
+    <div className="mb-6">
+      <h4 className="text-sm font-semibold text-slate-600 mb-3">Member Details</h4>
+      <div className="flex items-center space-x-4">
+        <img src="https://placehold.co/100x100/6B7280/FFF?text=EW" alt={member.name} className="w-16 h-16 rounded-full" />
+        <div>
+          <p className="font-semibold text-slate-800">{member.name}</p>
+          <p className="text-sm text-slate-500">{member.id}</p>
+          <p className="text-sm text-slate-500">{member.email}</p>
+        </div>
+      </div>
+    </div>
+
+    {/* Books to Issue/Return */}
+    <div className="mb-6">
+      <h4 className="text-sm font-semibold text-slate-600 mb-3">Books to {books.action} ({books.list.length}/2)</h4>
+      <ul className="space-y-4">
+        {books.list.map((book, index) => (
+          <li key={index} className="flex items-center space-x-3">
+            <img src={book.imageUrl} alt={book.title} className="w-12 h-16 object-cover rounded-md" />
+            <div>
+              <p className="font-medium text-slate-800">{book.title}</p>
+              <p className="text-xs text-slate-500">Author: {book.author}</p>
+              <p className="text-xs text-slate-500">ISBN: {book.isbn}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    {/* Dates */}
+    <div className="mb-6 bg-slate-50 p-4 rounded-lg">
+      {dates.map((date, index) => (
+         <div key={index} className="flex justify-between items-center text-sm">
+           <span className="text-slate-600">{date.label}</span>
+           <span className="font-semibold text-slate-800">{date.value}</span>
+         </div>
+      ))}
+    </div>
+
+    {/* Note */}
+    {note && (
+      <div className="mb-6">
+        <h4 className="text-sm font-semibold text-slate-600 mb-2">Note</h4>
+        <p className="text-sm text-slate-500 bg-slate-50 p-4 rounded-lg italic">{note}</p>
+      </div>
+    )}
+  </div>
+);
+
+
+/**
+ * Issue Book Form
+ */
+const IssueBookForm = () => {
+  const [note, setNote] = useState("A Study in Ash has slight cover damage.");
+  const previewData = {
+    title: "Issue Preview",
+    member: { name: "Edmund Wright", id: "M:1101", email: "edmund.wright@email.com" },
+    books: {
+      action: "Issue",
+      list: [
+        { title: "A Study in Ash", author: "Clara Vane", isbn: "978-1-4028-9461-1", imageUrl: "https://placehold.co/100x150/EEE/333?text=Book1" },
+        { title: "Echoes of the Manor", author: "Evelyn Blackwood", isbn: "978-0-4028-9463-5", imageUrl: "https://placehold.co/100x150/EEE/333?text=Book2" }
+      ]
+    },
+    dates: [
+      { label: "Issue Date:", value: "2025-06-13" },
+      { label: "Due Date:", value: "2025-06-27" }
+    ]
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <form className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-slate-200 space-y-6">
+        <h3 className="text-lg font-semibold text-slate-800">Issue Book(s)</h3>
+        
+        <FormInput label="Search Member by Id, Name, or Email" id="searchMember" placeholder="Start typing to search..." />
+        
+        <FormInput label="Search Book by Title, ISBN, or Author" id="searchBook" placeholder="Select books to issue (1/2 selected)" />
+        {/* A real app would have a dynamic list here */}
+        <div className="pl-4 space-y-2">
+            <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                <p className="text-sm text-slate-700">A Study in Ash by Clara Vane</p>
+                <button className="text-red-500 hover:text-red-700"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                <p className="text-sm text-slate-700">Echoes of the Manor by Evelyn Blackwood</p>
+                <button className="text-red-500 hover:text-red-700"><X className="w-4 h-4" /></button>
+            </div>
+        </div>
+
+        <div className="flex space-x-6">
+          <FormInput label="Issue Date" id="issueDate" type="date" defaultValue="2025-06-13" />
+          <FormInput label="Due Date" id="dueDate" type="date" defaultValue="2025-06-27" />
+        </div>
+
+        <FormTextArea label="Note" id="issueNote" placeholder="Type any special remarks or restrictions" optional value={note} onChange={e => setNote(e.target.value)} />
+
+        <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+          <button type="button" className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Cancel</button>
+          <button type="submit" className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm">Confirm Issue Book(s)</button>
+        </div>
+      </form>
+      
+      <BookTransactionPreview {...previewData} note={note} />
+    </div>
+  );
+};
+
+/**
+ * Return Book Form
+ */
+const ReturnBookForm = () => {
+    const [note, setNote] = useState("");
+    const previewData = {
+    title: "Return Preview",
+    member: { name: "Edmund Wright", id: "M:1101", email: "edmund.wright@email.com" },
+    books: {
+      action: "Return",
+      list: [
+        { title: "A Study in Ash", author: "Clara Vane", isbn: "978-1-4028-9461-1", imageUrl: "https://placehold.co/100x150/EEE/333?text=Book1" },
+        { title: "Echoes of the Manor", author: "Evelyn Blackwood", isbn: "978-0-4028-9463-5", imageUrl: "https://placehold.co/100x150/EEE/333?text=Book2" }
+      ]
+    },
+    dates: [
+      { label: "Return Date:", value: "2025-06-13" }
+    ]
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <form className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-slate-200 space-y-6">
+        <h3 className="text-lg font-semibold text-slate-800">Return Book(s)</h3>
+        
+        <FormInput label="Search Member by Id, Name, or Email" id="searchMemberReturn" placeholder="Start typing to search..." />
+        
+        <FormInput label="Search Book by Title, ISBN, or Author" id="searchBookReturn" placeholder="Select books to return (2/2 selected)" />
+        {/* A real app would have a dynamic list here */}
+        <div className="pl-4 space-y-2">
+            <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                <p className="text-sm text-slate-700">A Study in Ash by Clara Vane</p>
+                <button className="text-red-500 hover:text-red-700"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                <p className="text-sm text-slate-700">Echoes of the Manor by Evelyn Blackwood</p>
+                <button className="text-red-500 hover:text-red-700"><X className="w-4 h-4" /></button>
+            </div>
+        </div>
+
+        <div className="flex space-x-6">
+          <FormInput label="Return Date" id="returnDate" type="date" defaultValue="2025-06-13" />
+        </div>
+
+        <FormTextArea label="Note" id="returnNote" placeholder="Type any special remarks or restrictions" optional value={note} onChange={e => setNote(e.target.value)} />
+
+        <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+          <button type="button" className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Cancel</button>
+          <button type="submit" className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm">Confirm Return Book(s)</button>
+        </div>
+      </form>
+      
+      <BookTransactionPreview {...previewData} note={note} />
+    </div>
+  );
+};
+
+
+/**
+ * Dashboard Page
+ * The main container for the dashboard content.
+ */
+const DashboardPage = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return <DashboardOverview />;
+      case 'addBook':
+        return <AddNewBookForm />;
+      case 'registerMember':
+        return <RegisterNewMemberForm />;
+      case 'issueBook':
+        return <IssueBookForm />;
+      case 'returnBook':
+        return <ReturnBookForm />;
+      default:
+        return <DashboardOverview />;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="Total Books" value={mockStats.totalBooks} icon={Book} color="blue" />
+        <StatCard title="Borrowed Books" value={mockStats.borrowedBooks} icon={ArrowRight} color="purple" />
+        <StatCard title="Overdue Books" value={mockStats.overdueBooks} icon={AlertTriangle} color="red" />
+        <StatCard title="Total Members" value={mockStats.totalMembers} icon={Users} color="green" />
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200">
+        <div className="px-6 border-b border-slate-200">
+          <h3 className="text-lg font-semibold text-slate-800 py-4">Quick Actions</h3>
+          <div className="flex space-x-6">
+            <QuickActionTab label="Overview" isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
+            <QuickActionTab label="Add New Book" isActive={activeTab === 'addBook'} onClick={() => setActiveTab('addBook')} />
+            <QuickActionTab label="Register New Member" isActive={activeTab === 'registerMember'} onClick={() => setActiveTab('registerMember')} />
+            <QuickActionTab label="Issue Book(s)" isActive={activeTab === 'issueBook'} onClick={() => setActiveTab('issueBook')} />
+            <QuickActionTab label="Return Book(s)" isActive={activeTab === 'returnBook'} onClick={() => setActiveTab('returnBook')} />
+          </div>
+        </div>
+        <div className="p-6">
+          {renderTabContent()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const StatCard = ({ title, value, icon: Icon, color }) => {
+  const colors = {
+    blue: 'bg-blue-100 text-blue-600',
+    purple: 'bg-purple-100 text-purple-600',
+    red: 'bg-red-100 text-red-600',
+    green: 'bg-green-100 text-green-600',
+  };
+  return (
+    <div className="bg-white p-5 rounded-lg shadow-sm border border-slate-200 flex items-center space-x-4">
+      <div className={`p-3 rounded-full ${colors[color]}`}>
+        <Icon className="w-6 h-6" />
+      </div>
+      <div>
+        <p className="text-sm text-slate-500">{title}</p>
+        <p className="text-2xl font-bold text-slate-800">{value.toLocaleString()}</p>
+      </div>
+    </div>
+  );
+};
+
+const QuickActionTab = ({ label, isActive, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`pb-3 text-sm font-medium ${
+      isActive
+        ? 'text-blue-600 border-b-2 border-blue-600'
+        : 'text-slate-500 hover:text-slate-700'
+    }`}
+  >
+    {label}
+  </button>
+);
+
+/**
+ * Placeholder Page
+ * A simple component for unbuilt pages.
+ */
+const PlaceholderPage = ({ title }) => (
+  <div className="p-8 bg-white rounded-lg shadow-sm border border-slate-200">
+    <h1 className="text-3xl font-bold text-slate-900">{title}</h1>
+    <p className="text-slate-600 mt-2">
+      This page is under construction. Check back soon!
+    </p>
+  </div>
+);
+
+
+/**
+ * Main App Component
+ * Handles page routing and layout.
+ */
+export default function App() {
+  const [currentPage, setCurrentPage] = useState('dashboard');
+
+  // Simple router to render the correct page
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <DashboardPage />;
+      // Add cases for other pages here
+      default:
+        return <PlaceholderPage title={currentPage.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} />;
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-slate-100 font-sans">
+      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+      <div className="flex-1 flex flex-col">
+        <Header />
+        <main className="flex-1 overflow-y-auto p-6">
+          {renderPage()}
+        </main>
+      </div>
+    </div>
+  );
+}
