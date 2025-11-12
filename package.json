@@ -12,7 +12,10 @@
     "db:seed": "tsx lib/db/seed.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:setup": "pnpm db:migrate && pnpm db:seed"
+    "db:setup": "pnpm db:migrate && pnpm db:seed",
+    "db:import": "tsx scripts/import-books-from-api.ts",
+    "db:import:200": "tsx scripts/import-books-from-api.ts --limit 200",
+    "db:full-setup": "pnpm db:migrate && pnpm db:seed && pnpm db:import:200"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
