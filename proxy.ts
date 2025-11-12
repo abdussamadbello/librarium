@@ -3,14 +3,17 @@ import type { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth/config'
 import { canAccessAdmin, canAccessMember } from '@/lib/auth/roles'
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const session = await auth()
   const { pathname } = request.nextUrl
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/auth/login', '/auth/register', '/auth/error']
+  const publicRoutes = ['/', '/login', '/register', '/error', '/discover']
   const isPublicRoute = publicRoutes.includes(pathname)
-
+  
+  // Guest-accessible routes (books browsing)
+  const isGuestBookRoute = pathname.startsWith('/books/')
+  
   // Admin routes
   const isAdminRoute = pathname.startsWith('/admin')
 
@@ -18,9 +21,9 @@ export async function middleware(request: NextRequest) {
   const isMemberRoute = pathname.startsWith('/member')
 
   // If it's a public route, allow access
-  if (isPublicRoute) {
-    // Redirect to appropriate dashboard if already logged in
-    if (session?.user) {
+  if (isPublicRoute || isGuestBookRoute) {
+    // Redirect to appropriate dashboard if already logged in (only for main public routes, not book details)
+    if (session?.user && publicRoutes.includes(pathname)) {
       if (canAccessAdmin(session.user.role)) {
         return NextResponse.redirect(new URL('/admin/dashboard', request.url))
       } else if (canAccessMember(session.user.role)) {
@@ -33,7 +36,7 @@ export async function middleware(request: NextRequest) {
   // Protect admin routes
   if (isAdminRoute) {
     if (!session?.user) {
-      return NextResponse.redirect(new URL('/auth/login', request.url))
+      return NextResponse.redirect(new URL('/login', request.url))
     }
 
     if (!canAccessAdmin(session.user.role)) {
@@ -46,11 +49,11 @@ export async function middleware(request: NextRequest) {
   // Protect member routes
   if (isMemberRoute) {
     if (!session?.user) {
-      return NextResponse.redirect(new URL('/auth/login', request.url))
+      return NextResponse.redirect(new URL('/login', request.url))
     }
 
     if (!canAccessMember(session.user.role)) {
-      return NextResponse.redirect(new URL('/auth/login', request.url))
+      return NextResponse.redirect(new URL('/login', request.url))
     }
 
     return NextResponse.next()

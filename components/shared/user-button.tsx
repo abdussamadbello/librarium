@@ -43,7 +43,7 @@ export function UserButton() {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => signOut({ callbackUrl: '/auth/login' })}
+        onClick={() => signOut({ callbackUrl: '/login' })}
         title="Sign out"
       >
         <LogOut className="w-4 h-4" />

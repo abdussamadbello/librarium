@@ -57,7 +57,7 @@ export default function RegisterPage() {
       } else {
         setSuccess(true)
         setTimeout(() => {
-          router.push('/auth/login')
+          router.push('/login')
         }, 2000)
       }
     } catch (error) {
@@ -173,7 +173,7 @@ export default function RegisterPage() {
       <CardFooter className="flex flex-col space-y-4">
         <div className="text-sm text-center text-neutral-600">
           Already have an account?{' '}
-          <Link href="/auth/login" className="text-primary-teal hover:underline font-medium">
+          <Link href="/login" className="text-primary-teal hover:underline font-medium">
             Sign in
           </Link>
         </div>

@@ -24,14 +24,16 @@ declare module 'next-auth' {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET,
+  
   session: {
     strategy: 'jwt',
   },
 
   pages: {
-    signIn: '/auth/login',
-    signOut: '/auth/login',
-    error: '/auth/error',
+    signIn: '/login',
+    signOut: '/login',
+    error: '/error',
   },
 
   providers: [

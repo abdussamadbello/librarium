@@ -17,11 +17,11 @@ export default function NotFound() {
           </p>
         </div>
         <div className="flex gap-4 justify-center">
-          <Link href="/member/discover">
-            <Button>Member Portal</Button>
+          <Link href="/discover">
+            <Button>Browse Books</Button>
           </Link>
-          <Link href="/admin/dashboard">
-            <Button variant="outline">Admin Portal</Button>
+          <Link href="/login">
+            <Button variant="outline">Sign In</Button>
           </Link>
         </div>
       </div>

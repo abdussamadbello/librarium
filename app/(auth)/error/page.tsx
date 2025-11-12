@@ -46,7 +46,7 @@ function AuthErrorContent() {
         </p>
       </CardContent>
       <CardFooter className="flex gap-3">
-        <Link href="/auth/login" className="flex-1">
+        <Link href="/login" className="flex-1">
           <Button className="w-full">Try Again</Button>
         </Link>
         <Link href="/" className="flex-1">

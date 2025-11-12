@@ -25,14 +25,14 @@ export default function Home() {
 
         {/* Portal Buttons */}
         <div className="flex gap-4 justify-center mt-8">
-          <Link href="/member/discover">
+          <Link href="/discover">
             <Button size="lg" className="px-8">
-              Member Portal
+              Browse Books
             </Button>
           </Link>
-          <Link href="/admin/dashboard">
+          <Link href="/login">
             <Button size="lg" variant="outline" className="px-8">
-              Admin Portal
+              Member Login
             </Button>
           </Link>
         </div>
