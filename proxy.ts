@@ -91,6 +91,9 @@ const handler = auth((request) => {
 
   // Protect member routes
   if (isMemberRoute) {
+    // DEBUG: log session and cookies for inspection
+    console.log('[middleware][DEBUG] member route request cookies:', request.headers.get('cookie'))
+    console.log('[middleware][DEBUG] member route session:', session)
     if (!session?.user) {
       console.log('[middleware] unauthenticated access to member route, redirecting to login', {
         pathname,
