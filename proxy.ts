@@ -1,14 +1,24 @@
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth/config'
 import { canAccessAdmin, canAccessMember } from '@/lib/auth/roles'
 
-export default async function proxy(request: NextRequest) {
-  const session = await auth()
+const handler = auth((request) => {
+  const session = request.auth
   const { pathname } = request.nextUrl
+  const role = session?.user?.role
 
+  console.log('[middleware] incoming request', {
+    pathname,
+    userId: session?.user?.id,
+    role,
+  })
+
+  // Auth routes (login/register)
+  const authRoutes = ['/login', '/register']
+  const isAuthRoute = authRoutes.includes(pathname)
+  
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/register', '/error', '/discover']
+  const publicRoutes = ['/', '/error', '/discover']
   const isPublicRoute = publicRoutes.includes(pathname)
   
   // Guest-accessible routes (books browsing)
@@ -20,26 +30,59 @@ export default async function proxy(request: NextRequest) {
   // Member routes
   const isMemberRoute = pathname.startsWith('/member')
 
-  // If it's a public route, allow access
-  if (isPublicRoute || isGuestBookRoute) {
-    // Redirect to appropriate dashboard if already logged in (only for main public routes, not book details)
-    if (session?.user && publicRoutes.includes(pathname)) {
-      if (canAccessAdmin(session.user.role)) {
-        return NextResponse.redirect(new URL('/admin/dashboard', request.url))
-      } else if (canAccessMember(session.user.role)) {
-        return NextResponse.redirect(new URL('/member/discover', request.url))
-      }
+  // Redirect logged-in users away from auth pages
+  if (isAuthRoute && session?.user) {
+    if (canAccessAdmin(session.user.role)) {
+      console.log('[middleware] redirecting authenticated admin away from auth route', {
+        pathname,
+        role,
+      })
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    } else {
+      console.log('[middleware] redirecting authenticated member away from auth route', {
+        pathname,
+        role,
+      })
+      return NextResponse.redirect(new URL('/member/dashboard', request.url))
     }
+  }
+
+  // Redirect from home page if logged in
+  if (pathname === '/' && session?.user) {
+    if (canAccessAdmin(session.user.role)) {
+      console.log('[middleware] redirecting admin from home to dashboard', { role })
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    } else {
+      console.log('[middleware] redirecting member from home to dashboard', { role })
+      return NextResponse.redirect(new URL('/member/dashboard', request.url))
+    }
+  }
+
+  // Allow public routes and guest book browsing
+  if (isPublicRoute || isGuestBookRoute || isAuthRoute) {
+    console.log('[middleware] allowing public/auth route', {
+      pathname,
+      isPublicRoute,
+      isGuestBookRoute,
+      isAuthRoute,
+    })
     return NextResponse.next()
   }
 
   // Protect admin routes
   if (isAdminRoute) {
     if (!session?.user) {
+      console.log('[middleware] unauthenticated access to admin route, redirecting to login', {
+        pathname,
+      })
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
     if (!canAccessAdmin(session.user.role)) {
+      console.log('[middleware] non-admin attempting admin route, redirecting to member discover', {
+        pathname,
+        role,
+      })
       return NextResponse.redirect(new URL('/member/discover', request.url))
     }
 
@@ -49,18 +92,28 @@ export default async function proxy(request: NextRequest) {
   // Protect member routes
   if (isMemberRoute) {
     if (!session?.user) {
+      console.log('[middleware] unauthenticated access to member route, redirecting to login', {
+        pathname,
+      })
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
     if (!canAccessMember(session.user.role)) {
+      console.log('[middleware] unauthorized role for member route, redirecting to login', {
+        pathname,
+        role,
+      })
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
     return NextResponse.next()
   }
 
+  console.log('[middleware] request allowed to proceed', { pathname })
   return NextResponse.next()
-}
+})
+
+export default handler
 
 // Configure which routes to run middleware on
 export const config = {

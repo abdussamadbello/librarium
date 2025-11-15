@@ -33,9 +33,8 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid email or password')
       } else if (result?.ok) {
-        // Redirect will be handled by middleware based on role
-        router.push('/admin/dashboard')
-        router.refresh()
+        // Redirect to home, proxy will handle role-based routing
+        window.location.href = '/'
       }
     } catch (error) {
       setError('An error occurred. Please try again.')
