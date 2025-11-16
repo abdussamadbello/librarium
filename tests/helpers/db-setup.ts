@@ -1,11 +1,11 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import * as schema from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
+import * as schema from '@/lib/db/schema';
 import * as bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import path from 'path';
+import { execSync } from 'child_process';
 
 // Load test environment variables
 dotenv.config({ path: path.resolve(process.cwd(), '.env.test') });
@@ -28,7 +28,7 @@ function getDb() {
 
 /**
  * Reset the test database to a clean state
- * Drops all tables and recreates them using drizzle push
+ * Drops all tables and recreates them using migrations
  */
 export async function resetDatabase() {
   const db = getDb();
@@ -42,11 +42,19 @@ export async function resetDatabase() {
       GRANT ALL ON SCHEMA public TO public;
     `);
 
-    // Enable pgvector extension
-    await db.execute(sql`CREATE EXTENSION IF NOT EXISTS vector;`);
+    // Run migrations using psql directly (workaround for drizzle migrate issue)
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL is not defined');
+    }
 
-    // Run migrations to recreate tables
-    await migrate(db, { migrationsFolder: './drizzle' });
+    // Extract connection details from DATABASE_URL
+    const url = new URL(databaseUrl);
+    const migrationFile = path.resolve(process.cwd(), 'drizzle/0000_sturdy_photon.sql');
+    
+    execSync(`PGPASSWORD="${url.password}" psql -h ${url.hostname} -p ${url.port} -U ${url.username} -d ${url.pathname.slice(1)} -f "${migrationFile}"`, {
+      stdio: 'pipe',
+    });
 
     console.log('✅ Database reset complete');
   } catch (error) {

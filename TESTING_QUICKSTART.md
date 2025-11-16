@@ -35,8 +35,10 @@ docker run --name librarium-test-db \
   -e POSTGRES_PASSWORD=testpass \
   -e POSTGRES_DB=librarium_test \
   -p 5433:5432 \
-  -d postgres:16
+  -d pgvector/pgvector:pg16
 ```
+
+**Note**: We use `pgvector/pgvector:pg16` instead of `postgres:16` because the project uses the pgvector extension for vector similarity search.
 
 #### Option B: Using Local PostgreSQL
 
