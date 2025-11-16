@@ -9,10 +9,15 @@ import {
   Heart,
   Settings,
   BookOpen,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
+import { UserButton } from '@/components/shared/user-button'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { signOut } from 'next-auth/react'
+import { Button } from '@/components/ui/button'
 
 interface NavItem {
   label: string
@@ -29,6 +34,7 @@ const navItems: NavItem[] = [
 
 export function MemberSidebar() {
   const pathname = usePathname()
+  const { user } = useCurrentUser()
 
   return (
     <div className="w-64 bg-white border-r border-neutral-200 flex flex-col p-4 h-screen">
@@ -71,20 +77,32 @@ export function MemberSidebar() {
       </div>
 
       {/* User Profile */}
-      <div className="mt-2">
+      <div className="mt-2 space-y-2">
         <Link href="/member/profile">
           <div className="p-3 bg-teal-50 rounded-lg flex items-center space-x-3 border border-teal-100 cursor-pointer hover:bg-teal-100 transition-colors">
             <Avatar className="w-10 h-10">
-              <AvatarImage src="https://placehold.co/100x100/66C0B7/FFF?text=DW" />
-              <AvatarFallback>DW</AvatarFallback>
+              <AvatarImage src={user?.image || undefined} />
+              <AvatarFallback>
+                {user?.name?.split(' ').map((n) => n[0]).join('').toUpperCase() || 'U'}
+              </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <div className="font-semibold text-sm text-teal-900">Davis Workman</div>
-              <div className="text-xs text-teal-700">Premium Member</div>
+              <div className="font-semibold text-sm text-teal-900">{user?.name || 'User'}</div>
+              <div className="text-xs text-teal-700">Member</div>
             </div>
             <Settings className="w-5 h-5 text-neutral-500 hover:text-neutral-800" />
           </div>
         </Link>
+        
+        {/* Sign Out Button */}
+        <Button
+          variant="outline"
+          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+          onClick={() => signOut({ callbackUrl: '/login' })}
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
+        </Button>
       </div>
     </div>
   )

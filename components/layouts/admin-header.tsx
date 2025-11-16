@@ -1,7 +1,7 @@
 "use client"
 
-import { Search, Bell, ChevronDown } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Search, Bell } from 'lucide-react'
+import { UserButton } from '@/components/shared/user-button'
 
 export function AdminHeader() {
   return (
@@ -39,18 +39,8 @@ export function AdminHeader() {
           </span>
         </button>
 
-        {/* User Menu */}
-        <div className="flex items-center space-x-2 cursor-pointer hover:bg-slate-50 rounded-lg px-2 py-1 transition-colors">
-          <Avatar className="w-8 h-8">
-            <AvatarImage src="https://placehold.co/100x100/6B7280/FFF?text=RA" />
-            <AvatarFallback>RA</AvatarFallback>
-          </Avatar>
-          <div className="text-left">
-            <div className="font-semibold text-sm text-slate-800">Ravindu Perera</div>
-            <div className="text-xs text-slate-500">Admin</div>
-          </div>
-          <ChevronDown className="w-4 h-4 text-slate-500" />
-        </div>
+        {/* User Menu with Sign Out */}
+        <UserButton />
       </div>
     </header>
   )
