@@ -250,7 +250,7 @@ async function getOrCreateAuthor(authorName: string): Promise<number> {
     .limit(1)
 
   if (existing.length > 0) {
-    return existing[0].id
+    return existing[0]!.id
   }
 
   // Create new author
@@ -260,12 +260,10 @@ async function getOrCreateAuthor(authorName: string): Promise<number> {
       name: authorName,
       bio: null,
       imageUrl: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     })
     .returning()
 
-  return newAuthor.id
+  return newAuthor!.id
 }
 
 /**
@@ -281,7 +279,7 @@ async function getOrCreateCategory(subjects: string[]): Promise<number> {
       .limit(1)
 
     if (generalCategory.length > 0) {
-      return generalCategory[0].id
+      return generalCategory[0]!.id
     }
 
     // Create General category
@@ -291,12 +289,10 @@ async function getOrCreateCategory(subjects: string[]): Promise<number> {
         name: 'General',
         description: 'General books',
         parentId: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })
       .returning()
 
-    return newCategory.id
+    return newCategory!.id
   }
 
   // Map subjects to categories
@@ -333,7 +329,7 @@ async function getOrCreateCategory(subjects: string[]): Promise<number> {
     .limit(1)
 
   if (existing.length > 0) {
-    return existing[0].id
+    return existing[0]!.id
   }
 
   // Create category
@@ -343,12 +339,10 @@ async function getOrCreateCategory(subjects: string[]): Promise<number> {
       name: categoryName,
       description: `Books about ${categoryName.toLowerCase()}`,
       parentId: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     })
     .returning()
 
-  return newCategory.id
+  return newCategory!.id
 }
 
 /**
@@ -363,7 +357,7 @@ async function importBook(bookData: BookData): Promise<boolean> {
       existing = await db
         .select()
         .from(books)
-        .where(eq(books.isbn13, bookData.isbn13))
+        .where(eq(books.isbn, bookData.isbn13))
         .limit(1)
     }
 
@@ -393,33 +387,26 @@ async function importBook(bookData: BookData): Promise<boolean> {
         title: bookData.title,
         authorId,
         categoryId,
-        isbn: bookData.isbn,
-        isbn13: bookData.isbn13,
+        isbn: bookData.isbn13 || bookData.isbn,
         publisher: bookData.publisher,
-        publishYear: bookData.publishYear,
+        publicationYear: bookData.publishYear,
         description: bookData.description,
-        coverImage: bookData.coverImage,
-        pageCount: bookData.pageCount,
+        coverImageUrl: bookData.coverImage,
         language: bookData.language,
         availableCopies: 3, // Start with 3 copies
         totalCopies: 3,
         tags: bookData.subjects,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })
       .returning()
 
     // Create book copies (3 copies per book)
     for (let i = 1; i <= 3; i++) {
       await db.insert(bookCopies).values({
-        bookId: newBook.id,
+        bookId: newBook!.id,
         copyNumber: i,
         status: 'available',
         condition: i === 1 ? 'new' : 'good',
-        qrCode: `BOOK-${newBook.id}-COPY-${i}`,
-        acquiredDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        qrCode: `BOOK-${newBook!.id}-COPY-${i}`,
       })
     }
 
@@ -437,7 +424,7 @@ async function importBook(bookData: BookData): Promise<boolean> {
 async function main() {
   const args = process.argv.slice(2)
   const limitIndex = args.indexOf('--limit')
-  const limit = limitIndex >= 0 ? parseInt(args[limitIndex + 1]) : 200
+  const limit = limitIndex >= 0 ? parseInt(args[limitIndex + 1] || '200') : 200
 
   const sourceIndex = args.indexOf('--source')
   const source = sourceIndex >= 0 ? args[sourceIndex + 1] : 'openlibrary'

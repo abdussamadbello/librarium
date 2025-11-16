@@ -8,6 +8,7 @@ import { BookOpen, Calendar, User, Tag, Building, ArrowLeft } from 'lucide-react
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
+import { ThemeToggle } from '@/components/shared/theme-toggle'
 
 interface BookData {
   book: {
@@ -67,26 +68,33 @@ export default function BookDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-background">
         {/* Guest Header */}
         {!session && (
-          <header className="bg-white border-b border-neutral-200 sticky top-0 z-50">
+          <header className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 shadow-soft">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between items-center h-16">
-                <Link href="/discover" className="flex items-center space-x-2">
-                  <BookOpen className="w-8 h-8 text-primary-teal" />
-                  <span className="text-xl font-bold text-zinc-900">Librarium</span>
+                <Link href="/discover" className="flex items-center space-x-3 group">
+                  <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                    <BookOpen className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-serif font-bold text-foreground">Librarium</span>
+                    <Badge variant="outline" className="text-xs border-primary/20 text-primary font-mono hidden sm:inline-flex">
+                      Public Collection
+                    </Badge>
+                  </div>
                 </Link>
                 <div className="flex items-center space-x-4">
                   <Link
                     href="/login"
-                    className="text-sm font-medium text-neutral-600 hover:text-primary-teal"
+                    className="text-sm font-sans font-medium text-muted-foreground hover:text-primary transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/register"
-                    className="px-4 py-2 bg-primary-teal text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+                    className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition-all hover:scale-105"
                   >
                     Join Library
                   </Link>
@@ -97,8 +105,10 @@ export default function BookDetailPage() {
         )}
         
         <div className={`${!session ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8' : ''} text-center py-20`}>
-          <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4 animate-pulse" />
-          <p className="text-slate-600">Loading book details...</p>
+          <div className="inline-flex p-6 rounded-full bg-primary/10 mb-4">
+            <BookOpen className="w-16 h-16 text-primary animate-pulse" />
+          </div>
+          <p className="text-muted-foreground font-mono">Loading book details...</p>
         </div>
       </div>
     )
@@ -106,26 +116,33 @@ export default function BookDetailPage() {
 
   if (!bookData) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-background">
         {/* Guest Header */}
         {!session && (
-          <header className="bg-white border-b border-neutral-200 sticky top-0 z-50">
+          <header className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 shadow-soft">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between items-center h-16">
-                <Link href="/discover" className="flex items-center space-x-2">
-                  <BookOpen className="w-8 h-8 text-primary-teal" />
-                  <span className="text-xl font-bold text-zinc-900">Librarium</span>
+                <Link href="/discover" className="flex items-center space-x-3 group">
+                  <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                    <BookOpen className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-serif font-bold text-foreground">Librarium</span>
+                    <Badge variant="outline" className="text-xs border-primary/20 text-primary font-mono hidden sm:inline-flex">
+                      Public Collection
+                    </Badge>
+                  </div>
                 </Link>
                 <div className="flex items-center space-x-4">
                   <Link
                     href="/login"
-                    className="text-sm font-medium text-neutral-600 hover:text-primary-teal"
+                    className="text-sm font-sans font-medium text-muted-foreground hover:text-primary transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/register"
-                    className="px-4 py-2 bg-primary-teal text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+                    className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition-all hover:scale-105"
                   >
                     Join Library
                   </Link>
@@ -136,11 +153,13 @@ export default function BookDetailPage() {
         )}
 
         <div className={`${!session ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8' : ''} text-center py-20`}>
-          <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Book Not Found</h2>
-          <p className="text-slate-600 mb-6">The book you&apos;re looking for doesn&apos;t exist.</p>
+          <div className="inline-flex p-6 rounded-full bg-muted/50 mb-4">
+            <BookOpen className="w-16 h-16 text-muted-foreground/40" />
+          </div>
+          <h2 className="text-3xl font-serif font-bold text-foreground mb-2">Book Not Found</h2>
+          <p className="text-muted-foreground mb-6 font-sans">The book you're looking for doesn't exist.</p>
           <Link href={session ? "/member/discover" : "/discover"}>
-            <Button className="bg-teal-600 hover:bg-teal-700">Browse Books</Button>
+            <Button className="bg-primary hover:bg-primary/90 font-sans">Browse Books</Button>
           </Link>
         </div>
       </div>
@@ -152,78 +171,91 @@ export default function BookDetailPage() {
   const backUrl = session ? "/member/discover" : "/discover"
 
   const content = (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Back Button */}
       <Link
         href={backUrl}
-        className="inline-flex items-center text-sm text-teal-600 hover:text-teal-700"
+        className="inline-flex items-center text-sm text-primary hover:text-primary/80 font-sans font-medium transition-colors"
       >
         <ArrowLeft className="w-4 h-4 mr-1" />
         Back to Discover
       </Link>
 
       {/* Book Header */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Book Cover */}
         <div className="md:col-span-1">
-          <div className="w-full aspect-[3/4] bg-gradient-to-br from-teal-100 to-teal-200 rounded-lg shadow-lg flex items-center justify-center p-8">
-            <div className="text-center">
-              <BookOpen className="w-24 h-24 text-teal-600 mx-auto mb-4" />
-              <p className="text-sm text-teal-700 font-medium">{book.title}</p>
+          <div className="w-full aspect-[3/4] bg-gradient-to-br from-primary/10 via-accent/20 to-primary/5 rounded-2xl shadow-soft flex items-center justify-center p-8 relative overflow-hidden">
+            {/* Decorative Pattern */}
+            <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary))_1px,transparent_1px)] bg-[length:20px_20px]"></div>
+            
+            <div className="text-center relative z-10">
+              <div className="p-6 rounded-2xl bg-primary/10 backdrop-blur-sm inline-block mb-4">
+                <BookOpen className="w-20 h-20 text-primary" />
+              </div>
+              <p className="text-sm text-foreground/80 font-serif font-medium px-4 line-clamp-3">{book.title}</p>
             </div>
           </div>
         </div>
 
         {/* Book Info */}
-        <div className="md:col-span-2 space-y-4">
+        <div className="md:col-span-2 space-y-6">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">{book.title}</h1>
+            <h1 className="text-5xl font-serif font-bold text-foreground mb-3 leading-tight">{book.title}</h1>
             {author && (
-              <p className="text-xl text-slate-600">by {author.name}</p>
+              <p className="text-2xl text-muted-foreground font-serif">by {author.name}</p>
             )}
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            {category && <Badge variant="outline">{category.name}</Badge>}
+            {category && <Badge variant="outline" className="border-primary/20 text-primary font-mono">{category.name}</Badge>}
             {isAvailable ? (
-              <Badge className="bg-green-600">
+              <Badge className="bg-chart-5 hover:bg-chart-5 font-mono">
                 {book.availableCopies} Available
               </Badge>
             ) : (
-              <Badge variant="destructive">Out of Stock</Badge>
+              <Badge variant="destructive" className="font-mono">Out of Stock</Badge>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-4">
-            <div className="flex items-start gap-2">
-              <Building className="w-5 h-5 text-slate-400 mt-0.5" />
+          <div className="grid grid-cols-2 gap-6 pt-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Building className="w-5 h-5 text-primary" />
+              </div>
               <div>
-                <p className="text-sm text-slate-500">Publisher</p>
-                <p className="font-medium">{book.publisher}</p>
+                <p className="text-sm text-muted-foreground font-mono">Publisher</p>
+                <p className="font-semibold font-sans">{book.publisher}</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-2">
-              <Calendar className="w-5 h-5 text-slate-400 mt-0.5" />
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Calendar className="w-5 h-5 text-primary" />
+              </div>
               <div>
-                <p className="text-sm text-slate-500">Year</p>
-                <p className="font-medium">{book.publicationYear || 'N/A'}</p>
+                <p className="text-sm text-muted-foreground font-mono">Year</p>
+                <p className="font-semibold font-sans">{book.publicationYear || 'N/A'}</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-2">
-              <Tag className="w-5 h-5 text-slate-400 mt-0.5" />
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Tag className="w-5 h-5 text-primary" />
+              </div>
               <div>
-                <p className="text-sm text-slate-500">ISBN</p>
-                <p className="font-medium">{book.isbn || 'N/A'}</p>
+                <p className="text-sm text-muted-foreground font-mono">ISBN</p>
+                <p className="font-semibold font-sans">{book.isbn || 'N/A'}</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-2">
-              <BookOpen className="w-5 h-5 text-slate-400 mt-0.5" />
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <BookOpen className="w-5 h-5 text-primary" />
+              </div>
               <div>
-                <p className="text-sm text-slate-500">Copies</p>
-                <p className="font-medium">
+                <p className="text-sm text-muted-foreground font-mono">Copies</p>
+                <p className="font-semibold font-sans">
                   {book.availableCopies}/{book.totalCopies}
                 </p>
               </div>
@@ -232,22 +264,22 @@ export default function BookDetailPage() {
 
           <div className="pt-4">
             {isAvailable ? (
-              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
-                <p className="text-sm text-teal-800 mb-2">
-                  <strong>This book is available!</strong> 
+              <div className="bg-chart-5/10 border border-chart-5/30 rounded-xl p-6">
+                <p className="text-sm text-foreground font-sans">
+                  <strong className="font-semibold">This book is available!</strong> 
                   {!session ? (
-                    <> <Link href="/login" className="underline font-semibold">Sign in</Link> or <Link href="/register" className="underline font-semibold">join the library</Link> to borrow it.</>
+                    <> <Link href="/login" className="underline font-semibold text-primary hover:text-primary/80">Sign in</Link> or <Link href="/register" className="underline font-semibold text-primary hover:text-primary/80">join the library</Link> to borrow it.</>
                   ) : (
                     <> Visit the library to borrow it, or contact a librarian for assistance.</>
                   )}
                 </p>
               </div>
             ) : (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <p className="text-sm text-orange-800">
+              <div className="bg-accent/10 border border-accent/30 rounded-xl p-6">
+                <p className="text-sm text-foreground font-sans">
                   All copies are currently borrowed. 
                   {!session ? (
-                    <> <Link href="/login" className="underline font-semibold">Sign in</Link> to check back later or ask a librarian about reserving a copy.</>
+                    <> <Link href="/login" className="underline font-semibold text-primary hover:text-primary/80">Sign in</Link> to check back later or ask a librarian about reserving a copy.</>
                   ) : (
                     <> Check back later or ask a librarian about reserving a copy.</>
                   )}
@@ -260,30 +292,30 @@ export default function BookDetailPage() {
 
       {/* Description */}
       {book.description && (
-        <Card>
+        <Card className="shadow-soft border-0">
           <CardHeader>
-            <CardTitle>Description</CardTitle>
+            <CardTitle className="font-serif text-2xl text-foreground">Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-slate-700 leading-relaxed">{book.description}</p>
+            <p className="text-foreground leading-relaxed font-sans">{book.description}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Author Bio */}
       {author?.biography && (
-        <Card>
+        <Card className="shadow-soft border-0">
           <CardHeader>
-            <CardTitle>About the Author</CardTitle>
+            <CardTitle className="font-serif text-2xl text-foreground">About the Author</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">
-                <User className="w-8 h-8 text-slate-400" />
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <User className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-slate-900 mb-1">{author.name}</h3>
-                <p className="text-slate-700 leading-relaxed">{author.biography}</p>
+                <h3 className="font-semibold text-xl font-serif text-foreground mb-2">{author.name}</h3>
+                <p className="text-muted-foreground leading-relaxed font-sans">{author.biography}</p>
               </div>
             </div>
           </CardContent>
@@ -291,30 +323,30 @@ export default function BookDetailPage() {
       )}
 
       {/* Copy Details */}
-      <Card>
+      <Card className="shadow-soft border-0">
         <CardHeader>
-          <CardTitle>Copy Availability</CardTitle>
+          <CardTitle className="font-serif text-2xl text-foreground">Copy Availability</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {copies.map((copy) => (
               <div
                 key={copy.id}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                className="flex items-center justify-between p-4 bg-muted/50 rounded-xl transition-all hover:shadow-soft"
               >
                 <div>
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-semibold font-sans">
                     Copy #{copy.copyNumber || copy.id}
                   </span>
                   {copy.condition && (
-                    <span className="text-xs text-slate-500 ml-2">
+                    <span className="text-xs text-muted-foreground ml-2 font-mono">
                       ({copy.condition})
                     </span>
                   )}
                 </div>
                 <Badge
                   variant={copy.status === 'available' ? 'default' : 'secondary'}
-                  className={copy.status === 'available' ? 'bg-green-600' : ''}
+                  className={copy.status === 'available' ? 'bg-chart-5 hover:bg-chart-5 font-mono' : 'font-mono'}
                 >
                   {copy.status}
                 </Badge>
@@ -326,27 +358,33 @@ export default function BookDetailPage() {
 
       {/* Call to Action for Guests */}
       {!session && (
-        <Card className="p-8 bg-gradient-to-r from-teal-50 to-blue-50 border-teal-200">
-          <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold text-zinc-900 mb-3">
-              Want to Borrow This Book?
-            </h2>
-            <p className="text-neutral-600 mb-6">
-              Join our library to borrow books, manage your reading history, and get personalized recommendations.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link
-                href="/register"
-                className="px-6 py-3 bg-primary-teal text-white rounded-lg font-medium hover:bg-teal-700 transition-colors"
-              >
-                Create Account
-              </Link>
-              <Link
-                href="/login"
-                className="px-6 py-3 border border-primary-teal text-primary-teal rounded-lg font-medium hover:bg-teal-50 transition-colors"
-              >
-                Sign In
-              </Link>
+        <Card className="shadow-soft border-0 overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/10 to-primary/5" />
+          <div className="relative z-10 p-12 text-center">
+            <div className="max-w-2xl mx-auto">
+              <div className="inline-flex p-4 rounded-full bg-primary/10 mb-6">
+                <BookOpen className="w-10 h-10 text-primary" />
+              </div>
+              <h2 className="text-4xl font-serif font-bold text-foreground mb-4">
+                Want to Borrow This Book?
+              </h2>
+              <p className="text-lg text-muted-foreground mb-8 font-sans max-w-xl mx-auto">
+                Join our library to borrow books, manage your reading history, and get personalized recommendations.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <Link
+                  href="/register"
+                  className="px-8 py-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 font-sans"
+                >
+                  Create Account
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-8 py-4 border-2 border-primary text-primary rounded-xl font-semibold hover:bg-primary/5 transition-all font-sans"
+                >
+                  Sign In
+                </Link>
+              </div>
             </div>
           </div>
         </Card>
@@ -354,50 +392,79 @@ export default function BookDetailPage() {
     </div>
   )
 
-  if (!session) {
-    return (
-      <div className="min-h-screen bg-neutral-50">
-        {/* Guest Header */}
-        <header className="bg-white border-b border-neutral-200 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <Link href="/discover" className="flex items-center space-x-2">
-                <BookOpen className="w-8 h-8 text-primary-teal" />
-                <span className="text-xl font-bold text-zinc-900">Librarium</span>
-              </Link>
-              <div className="flex items-center space-x-4">
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-neutral-600 hover:text-primary-teal"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-4 py-2 bg-primary-teal text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
-                >
-                  Join Library
-                </Link>
+  // Always show guest layout for public book pages
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Guest Header */}
+      <header className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 shadow-soft">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/discover" className="flex items-center space-x-3 group">
+              <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <BookOpen className="w-6 h-6 text-primary" />
               </div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-serif font-bold text-foreground">Librarium</span>
+                <Badge variant="outline" className="text-xs border-primary/20 text-primary font-mono hidden sm:inline-flex">
+                  Public Collection
+                </Badge>
+              </div>
+            </Link>
+            <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              {session ? (
+                <Link
+                  href="/member/dashboard"
+                  className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition-all hover:scale-105"
+                >
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-sm font-sans font-medium text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition-all hover:scale-105"
+                  >
+                    Join Library
+                  </Link>
+                </>
+              )}
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {content}
-        </main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {content}
+      </main>
 
-        {/* Footer */}
-        <footer className="bg-white border-t border-neutral-200 mt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="text-center text-sm text-neutral-600">
-              <p>&copy; 2025 Librarium. All rights reserved.</p>
+      {/* Footer */}
+      <footer className="bg-card/50 backdrop-blur-sm border-t border-border/50 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-primary" />
+              <span className="text-sm text-muted-foreground font-mono">
+                &copy; 2025 Librarium. Curated with care.
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors font-sans">
+                Home
+              </Link>
+              <Link href="/discover" className="text-sm text-muted-foreground hover:text-primary transition-colors font-sans">
+                Discover
+              </Link>
             </div>
           </div>
-        </footer>
-      </div>
-    )
-  }
-
-  return content
+        </div>
+      </footer>
+    </div>
+  )
 }

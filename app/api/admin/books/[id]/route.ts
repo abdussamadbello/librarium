@@ -118,7 +118,13 @@ export async function DELETE(
           WHERE bc.book_id = ${bookId} AND t.returned_at IS NULL`
     )
 
-    if ((activeTransactions.rows[0] as any).count > 0) {
+    const toArray = <T>(result: any): T[] => {
+      if (Array.isArray(result)) return result
+      if ('rows' in result) return result.rows
+      return []
+    }
+
+    if ((toArray(activeTransactions)[0] as any)?.count > 0) {
       return NextResponse.json(
         { error: 'Cannot delete book with active transactions' },
         { status: 400 }
