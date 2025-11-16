@@ -1,3 +1,6 @@
+-- Enable pgvector extension for vector similarity search
+CREATE EXTENSION IF NOT EXISTS vector;
+--> statement-breakpoint
 CREATE TABLE "accounts" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
@@ -50,6 +53,7 @@ CREATE TABLE "books" (
 	"author_id" integer,
 	"category_id" integer,
 	"publisher" text,
+	"publisher_id" integer,
 	"publication_year" integer,
 	"language" text,
 	"description" text,
@@ -121,6 +125,16 @@ CREATE TABLE "payments" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
+CREATE TABLE "publishers" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"description" text,
+	"website" text,
+	"contact_email" text,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "publishers_name_unique" UNIQUE("name")
+);
+--> statement-breakpoint
 CREATE TABLE "reservations" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" text,
@@ -131,6 +145,17 @@ CREATE TABLE "reservations" (
 	"notified_at" timestamp,
 	"fulfilled_at" timestamp,
 	"expires_at" timestamp
+);
+--> statement-breakpoint
+CREATE TABLE "reviews" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"user_id" text NOT NULL,
+	"book_id" integer NOT NULL,
+	"rating" integer NOT NULL,
+	"review_text" text,
+	"is_verified_borrower" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "sessions" (
@@ -146,6 +171,16 @@ CREATE TABLE "shelf_books" (
 	"shelf_id" integer,
 	"book_id" integer,
 	"added_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "system_settings" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"key" text NOT NULL,
+	"value" text NOT NULL,
+	"description" text,
+	"category" text,
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "system_settings_key_unique" UNIQUE("key")
 );
 --> statement-breakpoint
 CREATE TABLE "transactions" (
@@ -190,11 +225,31 @@ CREATE TABLE "verification_tokens" (
 	CONSTRAINT "verification_tokens_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
+CREATE TABLE "book_embeddings" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"book_id" integer NOT NULL,
+	"content" text NOT NULL,
+	"embedding" vector(1536) NOT NULL,
+	"metadata" jsonb,
+	"created_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "chat_conversations" (
+	"id" text PRIMARY KEY NOT NULL,
+	"user_id" text NOT NULL,
+	"book_id" integer,
+	"title" text,
+	"messages" jsonb NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "activity_log" ADD CONSTRAINT "activity_log_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "book_copies" ADD CONSTRAINT "book_copies_book_id_books_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "books" ADD CONSTRAINT "books_author_id_authors_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."authors"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "books" ADD CONSTRAINT "books_category_id_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "books" ADD CONSTRAINT "books_publisher_id_publishers_id_fk" FOREIGN KEY ("publisher_id") REFERENCES "public"."publishers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "categories" ADD CONSTRAINT "categories_parent_id_categories_id_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "custom_shelves" ADD CONSTRAINT "custom_shelves_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "favorites" ADD CONSTRAINT "favorites_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -207,10 +262,14 @@ ALTER TABLE "payments" ADD CONSTRAINT "payments_user_id_users_id_fk" FOREIGN KEY
 ALTER TABLE "payments" ADD CONSTRAINT "payments_processed_by_users_id_fk" FOREIGN KEY ("processed_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "reservations" ADD CONSTRAINT "reservations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "reservations" ADD CONSTRAINT "reservations_book_id_books_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "reviews" ADD CONSTRAINT "reviews_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "reviews" ADD CONSTRAINT "reviews_book_id_books_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shelf_books" ADD CONSTRAINT "shelf_books_shelf_id_custom_shelves_id_fk" FOREIGN KEY ("shelf_id") REFERENCES "public"."custom_shelves"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "shelf_books" ADD CONSTRAINT "shelf_books_book_id_books_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_book_copy_id_book_copies_id_fk" FOREIGN KEY ("book_copy_id") REFERENCES "public"."book_copies"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_issued_by_users_id_fk" FOREIGN KEY ("issued_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "transactions" ADD CONSTRAINT "transactions_returned_to_users_id_fk" FOREIGN KEY ("returned_to") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "transactions" ADD CONSTRAINT "transactions_returned_to_users_id_fk" FOREIGN KEY ("returned_to") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "unique_user_book_review" ON "reviews" USING btree ("user_id","book_id");--> statement-breakpoint
+CREATE INDEX "book_embeddings_book_id_idx" ON "book_embeddings" USING btree ("book_id");

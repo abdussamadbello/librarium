@@ -21,7 +21,7 @@ export class BookDetailsPage {
   constructor(page: Page) {
     this.page = page;
     this.bookTitle = page.locator('h1, h2').filter({ hasText: /.+/ }).first();
-    this.authorName = page.locator('text=/Author:|by/i').locator('..').locator('text=/[A-Z]/).first();
+    this.authorName = page.locator('text=/Author:|by/i').locator('..').locator('text=/[A-Z]/').first();
     this.bookDescription = page.locator('p:has-text("Description"), div:has-text("About")').first();
     this.availabilityBadge = page.locator('text=/Available|Out/').first();
     this.categoryBadge = page.locator('[class*="badge"], .badge').first();
