@@ -140,6 +140,45 @@ test('member can login', async ({ page }) => {
 
 ---
 
+## 🔐 Authentication & Session Management
+
+### Pre-Authenticated Sessions (Recommended)
+
+For better performance and reliability, tests use pre-authenticated session states instead of logging in manually for each test.
+
+**How it works:**
+
+1. During `global-setup`, test users are authenticated once and their session states are saved to `tests/.auth/`
+2. Tests reuse these saved states, eliminating login overhead
+3. This provides faster execution and more reliable session persistence
+
+**Usage example:**
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+// Use admin authentication for all tests in this file
+test.use({ storageState: 'tests/.auth/admin.json' });
+
+test('should access admin dashboard', async ({ page }) => {
+  await page.goto('/admin/dashboard');
+  // Already authenticated - no login needed!
+  await expect(page).toHaveURL(/\/admin\/dashboard/);
+});
+```
+
+**Available auth states:**
+- `tests/.auth/admin.json` - Admin user
+- `tests/.auth/staff.json` - Staff user
+- `tests/.auth/director.json` - Director user
+- `tests/.auth/member.json` - Standard member
+- `tests/.auth/premium.json` - Premium member
+- `tests/.auth/student.json` - Student member
+
+📚 **See [tests/AUTH_GUIDE.md](tests/AUTH_GUIDE.md)** for comprehensive documentation on authentication patterns, best practices, and troubleshooting.
+
+---
+
 ## 🎯 Running Specific Tests
 
 ```bash

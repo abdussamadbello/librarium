@@ -69,6 +69,26 @@ async function globalSetup(config: FullConfig) {
     await context.storageState({ path: 'tests/.auth/staff.json' });
     console.log('  ✓ Staff auth state saved');
 
+    // Director auth state
+    await context.clearCookies();
+    await page.goto(`${baseURL}/login`);
+    await page.fill('#email', 'director@test.com');
+    await page.fill('#password', 'TestPassword123!');
+    await page.click('button[type="submit"]');
+    await page.waitForURL(`${baseURL}/admin/dashboard`);
+    await context.storageState({ path: 'tests/.auth/director.json' });
+    console.log('  ✓ Director auth state saved');
+
+    // Student member auth state
+    await context.clearCookies();
+    await page.goto(`${baseURL}/login`);
+    await page.fill('#email', 'student@test.com');
+    await page.fill('#password', 'TestPassword123!');
+    await page.click('button[type="submit"]');
+    await page.waitForURL(`${baseURL}/member/dashboard`);
+    await context.storageState({ path: 'tests/.auth/student.json' });
+    console.log('  ✓ Student auth state saved');
+
     await browser.close();
 
     console.log('\n✅ Global setup complete!\n');

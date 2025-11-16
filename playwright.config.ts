@@ -58,11 +58,11 @@ export default defineConfig({
 
   // Configure projects for major browsers
   projects: [
+    // Unauthenticated tests (login, public pages)
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // Use chromium for most tests
       },
     },
 
@@ -101,6 +101,44 @@ export default defineConfig({
       use: {
         ...devices['iPad Pro'],
       },
+    },
+
+    // Authenticated projects using stored auth states
+    // These projects reuse authentication state for faster test execution
+    {
+      name: 'admin-chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/.auth/admin.json',
+      },
+      testMatch: /.*admin.*.spec\.ts/,
+    },
+
+    {
+      name: 'member-chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/.auth/member.json',
+      },
+      testMatch: /.*member.*.spec\.ts/,
+    },
+
+    {
+      name: 'staff-chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/.auth/staff.json',
+      },
+      testMatch: /.*staff.*.spec\.ts/,
+    },
+
+    {
+      name: 'premium-chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/.auth/premium.json',
+      },
+      testMatch: /.*premium.*.spec\.ts/,
     },
   ],
 
