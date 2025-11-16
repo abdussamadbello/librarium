@@ -115,7 +115,7 @@ export default function MemberDashboard() {
   const overdueBooks = borrowedBooks.filter((b) => b.isOverdue)
 
   return (
-    <div className="space-y-8">
+    <div className="container max-w-7xl mx-auto space-y-8">
       {/* Hero Header */}
       <div className="relative overflow-hidden">
         <div className="ornamental-border pb-6">
@@ -299,27 +299,29 @@ export default function MemberDashboard() {
               </Link>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="flex space-x-4 overflow-x-auto pb-6 scrollbar-hide -mx-6 px-6">
               {borrowedBooks.map((item, index) => (
                 <div
                   key={item.transaction.id}
-                  className={`border rounded-xl p-5 transition-all duration-300 hover:shadow-md group relative overflow-hidden
-                    ${item.isOverdue 
-                      ? 'border-destructive/30 bg-gradient-to-r from-destructive/5 to-destructive/10' 
-                      : 'border-border/50 bg-gradient-to-r from-card to-muted/10 hover:border-primary/30'
-                    }`}
+                  className="flex-shrink-0 w-80"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-primary via-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="flex items-start justify-between gap-4 pl-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-serif font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                  <div
+                    className={`border rounded-xl p-5 h-full transition-all duration-300 hover:shadow-md group relative overflow-hidden
+                      ${item.isOverdue 
+                        ? 'border-destructive/30 bg-gradient-to-br from-destructive/5 to-destructive/10' 
+                        : 'border-border/50 bg-gradient-to-br from-card to-muted/10 hover:border-primary/30'
+                      }`}
+                  >
+                    <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-primary via-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="pl-4">
+                      <h3 className="text-lg font-serif font-semibold text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-2">
                         {item.book.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground font-sans">
+                      <p className="text-sm text-muted-foreground font-sans mb-3">
                         by <span className="font-medium">{item.author?.name || 'Unknown'}</span>
                       </p>
-                      <div className="flex items-center gap-6 mt-3 text-xs text-muted-foreground font-mono">
+                      <div className="flex flex-col gap-2 mt-3 text-xs text-muted-foreground font-mono">
                         <span className="flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                           Borrowed: {format(new Date(item.transaction.checkoutDate), 'MMM d, yyyy')}
@@ -329,28 +331,29 @@ export default function MemberDashboard() {
                           Due: {format(new Date(item.transaction.dueDate), 'MMM d, yyyy')}
                         </span>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      {item.isOverdue ? (
-                        <Badge variant="destructive" className="shadow-sm font-mono">
-                          Overdue {item.daysOverdue}d
-                        </Badge>
-                      ) : (
-                        <>
-                          <Badge variant="outline" className="shadow-sm border-accent/30 text-accent font-mono">
-                            Due {formatDistanceToNow(new Date(item.transaction.dueDate), { addSuffix: true })}
+                      
+                      <div className="flex flex-col gap-2 mt-4">
+                        {item.isOverdue ? (
+                          <Badge variant="destructive" className="shadow-sm font-mono w-fit">
+                            Overdue {item.daysOverdue}d
                           </Badge>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRenew(item.transaction.id)}
-                            disabled={renewingId === item.transaction.id}
-                            className="font-sans text-xs"
-                          >
-                            {renewingId === item.transaction.id ? 'Renewing...' : 'Renew Book'}
-                          </Button>
-                        </>
-                      )}
+                        ) : (
+                          <>
+                            <Badge variant="outline" className="shadow-sm border-accent/30 text-accent font-mono w-fit">
+                              Due {formatDistanceToNow(new Date(item.transaction.dueDate), { addSuffix: true })}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRenew(item.transaction.id)}
+                              disabled={renewingId === item.transaction.id}
+                              className="font-sans text-xs w-full"
+                            >
+                              {renewingId === item.transaction.id ? 'Renewing...' : 'Renew Book'}
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

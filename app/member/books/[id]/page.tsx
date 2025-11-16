@@ -231,7 +231,7 @@ export default function BookDetailPage() {
   const isAvailable = book.availableCopies > 0
 
   return (
-    <div className="space-y-6">
+    <div className="container max-w-7xl mx-auto space-y-6">
       {/* Back Button */}
       <Link
         href="/member/discover"

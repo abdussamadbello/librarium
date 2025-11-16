@@ -139,7 +139,7 @@ export default function MemberReservationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div>
         <h1 className="font-serif text-4xl font-bold text-slate-900 mb-2">

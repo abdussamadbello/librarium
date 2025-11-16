@@ -42,6 +42,7 @@
 | 7 | **Availability Notifications** | "Notify me when a reserved book becomes available" | All | 8 | 4 | **2.0** | ❌ Not Started |
 | 8 | **Reading Analytics** | "Show me my reading patterns and achievements" | Casual, Parent | 6 | 4 | **1.5** | ❌ Not Started |
 | 9 | **Book Recommendations (AI)** | "Suggest books based on my history and preferences" | Casual | 9 | 8 | **1.1** | ❌ Not Started |
+| 9a | **AI Book Chat Assistant** | "Chat with an AI to discover books based on my interests" | All | 9 | 8 | **1.1** | ✅ Implemented |
 | 10 | **QR Code Member Card** | "Access my library card instantly on my phone" | All | 10 | 2 | **5.0** | ✅ Implemented |
 | 11 | **Family Account Linking** | "Manage multiple family member cards in one view" | Parent | 7 | 7 | **1.0** | ❌ Not Started |
 | 12 | **Public Shelf Sharing** | "Share my reading lists with friends/community" | Casual | 5 | 5 | **1.0** | ❌ Not Started |
@@ -102,6 +103,7 @@
 | **Book Reviews/Ratings** | 1.2 | Community building, discovery enhancement |
 | **Custom Shelves** | 1.2 | Power user feature, increases stickiness |
 | **AI Recommendations** | 1.1 | Competitive differentiator, complex to implement |
+| **AI Book Chat Assistant** | 1.1 | ✅ Implemented - RAG chatbot for book discovery |
 | **Family Account Linking** | 1.0 | Niche but high value for parents |
 | **Public Shelf Sharing** | 1.0 | Social features, viral potential |
 

@@ -15,14 +15,19 @@
     "db:setup": "pnpm db:migrate && pnpm db:seed",
     "db:import": "tsx scripts/import-books-from-api.ts",
     "db:import:200": "tsx scripts/import-books-from-api.ts --limit 200",
-    "db:full-setup": "pnpm db:migrate && pnpm db:seed && pnpm db:import:200"
+    "db:full-setup": "pnpm db:migrate && pnpm db:seed && pnpm db:import:200",
+    "embeddings:generate": "tsx scripts/generate-all-embeddings.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.67",
+    "@ai-sdk/react": "^2.0.93",
     "@auth/drizzle-adapter": "^1.11.1",
     "@hookform/resolvers": "^5.2.2",
     "@neondatabase/serverless": "^1.0.2",
+    "@radix-ui/react-separator": "^1.1.8",
     "@tanstack/react-query": "^5.90.7",
     "@types/qrcode": "^1.5.6",
+    "ai": "^5.0.93",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

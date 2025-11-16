@@ -179,19 +179,19 @@ export default function DiscoverPage() {
   const availableBooks = books.filter((b) => b.book.availableCopies > 0).slice(0, 6)
 
   return (
-    <>
+    <div className="container max-w-7xl mx-auto">
       {/* Hero Search Section - Immersive Editorial Design */}
-      <section className="mb-12 p-12 bg-gradient-to-br from-primary via-primary/90 to-primary/80 rounded-2xl shadow-dramatic relative overflow-hidden">
+      <section className="mb-12 p-12 bg-white border border-slate-200 rounded-2xl shadow-lg relative overflow-hidden">
         {/* Decorative Elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.1)_0%,transparent_50%)]"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-50 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-50 rounded-full blur-2xl"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(13,148,136,0.05)_0%,transparent_50%)]"></div>
         
         <div className="relative z-10">
-          <h1 className="text-display-md font-display text-white mb-3 text-balance">
-            Discover your next <span className="italic font-serif">great read</span>
+          <h1 className="text-display-md font-display text-slate-900 mb-3 text-balance">
+            Discover your next <span className="italic font-serif text-teal-700">great read</span>
           </h1>
-          <p className="text-xl text-white/90 mb-8 font-serif">
+          <p className="text-xl text-slate-700 mb-8 font-serif">
             Explore our curated collection of timeless literature and contemporary masterpieces
           </p>
 
@@ -203,7 +203,7 @@ export default function DiscoverPage() {
                 <Input
                   type="text"
                   placeholder="Search by title, ISBN, or author..."
-                  className="w-full bg-white/95 backdrop-blur-sm rounded-xl p-6 pl-14 text-base border-0 shadow-lg hover:shadow-xl transition-all duration-300 font-sans relative z-10 focus:bg-white"
+                  className="w-full bg-white rounded-xl p-6 pl-14 text-base border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 font-sans relative z-10 focus:border-teal-500"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -211,7 +211,7 @@ export default function DiscoverPage() {
               </div>
               <Button 
                 type="submit" 
-                className="bg-accent hover:bg-accent/90 text-foreground px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl border-0 font-sans"
+                className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-6 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-300 rounded-xl border-0 font-sans"
               >
                 Search Library
               </Button>
@@ -219,7 +219,7 @@ export default function DiscoverPage() {
                 type="button"
                 onClick={() => setShowFilters(!showFilters)}
                 variant="outline"
-                className="bg-white/95 hover:bg-white px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl border-0 font-sans"
+                className="bg-white hover:bg-slate-50 px-8 py-6 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-300 rounded-xl border border-slate-300 font-sans"
               >
                 {showFilters ? 'Hide' : 'Show'} Filters
               </Button>
@@ -227,7 +227,7 @@ export default function DiscoverPage() {
 
             {/* Advanced Filters */}
             {showFilters && (
-              <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg animate-fade-in-up">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 shadow-sm animate-fade-in-up">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="text-sm font-semibold text-foreground mb-2 block font-sans">
@@ -275,10 +275,10 @@ export default function DiscoverPage() {
           {/* Active Filters Display */}
           {hasActiveFilters && (
             <div className="mt-6 flex items-center gap-3 flex-wrap animate-fade-in-up">
-              <span className="text-white/90 text-sm font-mono">Active filters:</span>
+              <span className="text-slate-700 text-sm font-mono">Active filters:</span>
               {selectedCategory && (
                 <Badge
-                  className="bg-white/20 backdrop-blur-sm text-white border-white/30 cursor-pointer hover:bg-white/30 transition-colors px-4 py-1.5 font-sans"
+                  className="bg-teal-100 text-teal-800 border-teal-200 cursor-pointer hover:bg-teal-200 transition-colors px-4 py-1.5 font-sans"
                   onClick={() => setSelectedCategory(null)}
                 >
                   {categories.find((c) => c.id === selectedCategory)?.name} ✕
@@ -286,7 +286,7 @@ export default function DiscoverPage() {
               )}
               {yearFrom && (
                 <Badge
-                  className="bg-white/20 backdrop-blur-sm text-white border-white/30 cursor-pointer hover:bg-white/30 transition-colors px-4 py-1.5 font-sans"
+                  className="bg-teal-100 text-teal-800 border-teal-200 cursor-pointer hover:bg-teal-200 transition-colors px-4 py-1.5 font-sans"
                   onClick={() => setYearFrom('')}
                 >
                   From {yearFrom} ✕
@@ -294,7 +294,7 @@ export default function DiscoverPage() {
               )}
               {yearTo && (
                 <Badge
-                  className="bg-white/20 backdrop-blur-sm text-white border-white/30 cursor-pointer hover:bg-white/30 transition-colors px-4 py-1.5 font-sans"
+                  className="bg-teal-100 text-teal-800 border-teal-200 cursor-pointer hover:bg-teal-200 transition-colors px-4 py-1.5 font-sans"
                   onClick={() => setYearTo('')}
                 >
                   To {yearTo} ✕
@@ -302,7 +302,7 @@ export default function DiscoverPage() {
               )}
               {availabilityFilter !== 'all' && (
                 <Badge
-                  className="bg-white/20 backdrop-blur-sm text-white border-white/30 cursor-pointer hover:bg-white/30 transition-colors px-4 py-1.5 font-sans"
+                  className="bg-teal-100 text-teal-800 border-teal-200 cursor-pointer hover:bg-teal-200 transition-colors px-4 py-1.5 font-sans"
                   onClick={() => setAvailabilityFilter('all')}
                 >
                   {availabilityFilter === 'available' ? 'Available Only' : 'Checked Out'} ✕
@@ -455,6 +455,6 @@ export default function DiscoverPage() {
           </Card>
         )}
       </div>
-    </>
+    </div>
   )
 }

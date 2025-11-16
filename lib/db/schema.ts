@@ -366,3 +366,9 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
     references: [books.id],
   }),
 }));
+
+// ============================================================================
+// EMBEDDINGS & CHAT (AI/RAG)
+// ============================================================================
+
+export * from './schema/embeddings';

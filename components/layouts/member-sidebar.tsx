@@ -10,6 +10,14 @@ import {
   Settings,
   BookOpen,
   LogOut,
+  MessageSquare,
+  Home,
+  History,
+  DollarSign,
+  Bell,
+  Search,
+  CreditCard,
+  Calendar,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -26,15 +34,23 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { label: 'Dashboard', icon: Home, href: '/member/dashboard' },
   { label: 'Discover', icon: Compass, href: '/member/discover' },
-  { label: 'Category', icon: LayoutGrid, href: '/member/category' },
-  { label: 'My Library', icon: Library, href: '/member/library' },
-  { label: 'Favorites', icon: Heart, href: '/member/favorites' },
+  { label: 'Search', icon: Search, href: '/member/search' },
+  { label: 'Book Chat', icon: MessageSquare, href: '/member/chat' },
+  { label: 'History', icon: History, href: '/member/history' },
+  { label: 'Reservations', icon: Calendar, href: '/member/reservations' },
+  { label: 'Fines', icon: DollarSign, href: '/member/fines' },
+  { label: 'Membership', icon: CreditCard, href: '/member/membership' },
+  { label: 'Notifications', icon: Bell, href: '/member/notifications' },
 ]
 
 export function MemberSidebar() {
   const pathname = usePathname()
   const { user } = useCurrentUser()
+  
+  // Use Gravatar default mystery person icon
+  const gravatarUrl = `https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y&s=80`
 
   return (
     <div className="w-64 bg-white border-r border-neutral-200 flex flex-col p-4 h-screen">
@@ -48,7 +64,7 @@ export function MemberSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
@@ -81,8 +97,8 @@ export function MemberSidebar() {
         <Link href="/member/profile">
           <div className="p-3 bg-teal-50 rounded-lg flex items-center space-x-3 border border-teal-100 cursor-pointer hover:bg-teal-100 transition-colors">
             <Avatar className="w-10 h-10">
-              <AvatarImage src={user?.image || undefined} />
-              <AvatarFallback>
+              <AvatarImage src={gravatarUrl} />
+              <AvatarFallback className="bg-teal-600 text-white">
                 {user?.name?.split(' ').map((n) => n[0]).join('').toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
