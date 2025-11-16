@@ -69,6 +69,16 @@ export const authors = pgTable('authors', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
 });
 
+// Publishers table
+export const publishers = pgTable('publishers', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  description: text('description'),
+  website: text('website'),
+  contactEmail: text('contact_email'),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
 // Categories table (supports hierarchical categories)
 export const categories = pgTable('categories', {
   id: serial('id').primaryKey(),
@@ -85,7 +95,8 @@ export const books = pgTable('books', {
   isbn: text('isbn').unique(),
   authorId: integer('author_id').references(() => authors.id),
   categoryId: integer('category_id').references(() => categories.id),
-  publisher: text('publisher'),
+  publisher: text('publisher'), // Legacy text field - kept for backward compatibility
+  publisherId: integer('publisher_id').references(() => publishers.id), // New foreign key
   publicationYear: integer('publication_year'),
   language: text('language'),
   description: text('description'),
@@ -212,6 +223,16 @@ export const activityLog = pgTable('activity_log', {
   entityId: integer('entity_id'),
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
+// System Settings table (key-value store for configuration)
+export const systemSettings = pgTable('system_settings', {
+  id: serial('id').primaryKey(),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull(),
+  description: text('description'),
+  category: text('category'), // general, fines, reservations, email, membership
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 });
 
 // Notifications table
