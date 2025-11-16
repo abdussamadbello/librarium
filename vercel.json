@@ -4,13 +4,5 @@
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install",
   "framework": "nextjs",
-  "regions": ["iad1"],
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "USE_NEON": "true",
-    "NEXTAUTH_URL": "@nextauth_url",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "GOOGLE_BOOKS_API_KEY": "@google_books_api_key",
-    "NEXT_PUBLIC_APP_URL": "@next_public_app_url"
-  }
+  "regions": ["iad1"]
 }

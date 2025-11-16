@@ -56,11 +56,17 @@ export async function GET(
       `SELECT * FROM fines WHERE user_id = '${userId}' AND status = 'pending' ORDER BY issued_at DESC`
     )
 
+    const toArray = <T>(result: any): T[] => {
+      if (Array.isArray(result)) return result
+      if ('rows' in result) return result.rows
+      return []
+    }
+
     return NextResponse.json({
       member,
       activeTransactions,
-      historyCount: (historyResult.rows[0] as any)?.count || 0,
-      pendingFines: finesResult.rows || [],
+      historyCount: (toArray(historyResult)[0] as any)?.count || 0,
+      pendingFines: toArray(finesResult),
     })
   } catch (error) {
     console.error('Error fetching member:', error)

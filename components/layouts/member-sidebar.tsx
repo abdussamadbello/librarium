@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ThemeToggle } from '@/components/shared/theme-toggle'
 
 interface NavItem {
   label: string
@@ -64,19 +65,26 @@ export function MemberSidebar() {
         })}
       </nav>
 
+      {/* Theme Toggle */}
+      <div className="px-3 py-2">
+        <ThemeToggle />
+      </div>
+
       {/* User Profile */}
-      <div className="mt-auto">
-        <div className="p-3 bg-teal-50 rounded-lg flex items-center space-x-3 border border-teal-100 cursor-pointer hover:bg-teal-100 transition-colors">
-          <Avatar className="w-10 h-10">
-            <AvatarImage src="https://placehold.co/100x100/66C0B7/FFF?text=DW" />
-            <AvatarFallback>DW</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <div className="font-semibold text-sm text-teal-900">Davis Workman</div>
-            <div className="text-xs text-teal-700">Premium Member</div>
+      <div className="mt-2">
+        <Link href="/member/profile">
+          <div className="p-3 bg-teal-50 rounded-lg flex items-center space-x-3 border border-teal-100 cursor-pointer hover:bg-teal-100 transition-colors">
+            <Avatar className="w-10 h-10">
+              <AvatarImage src="https://placehold.co/100x100/66C0B7/FFF?text=DW" />
+              <AvatarFallback>DW</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <div className="font-semibold text-sm text-teal-900">Davis Workman</div>
+              <div className="text-xs text-teal-700">Premium Member</div>
+            </div>
+            <Settings className="w-5 h-5 text-neutral-500 hover:text-neutral-800" />
           </div>
-          <Settings className="w-5 h-5 text-neutral-500 hover:text-neutral-800" />
-        </div>
+        </Link>
       </div>
     </div>
   )

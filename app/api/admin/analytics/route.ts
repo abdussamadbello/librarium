@@ -124,14 +124,21 @@ export async function GET(req: NextRequest) {
         AND created_at >= ${periodStart.toISOString()}
     `)
 
+    // Handle different return types from db.execute() (RowList vs QueryResult)
+    const toArray = <T>(result: any): T[] => {
+      if (Array.isArray(result)) return result
+      if ('rows' in result) return result.rows
+      return []
+    }
+
     return NextResponse.json({
-      circulationStats: circulationStats.rows,
-      popularBooks: popularBooks.rows,
-      categoryStats: categoryStats.rows,
-      memberActivity: memberActivity.rows,
-      overdueAnalysis: overdueAnalysis.rows,
-      revenueStats: revenueStats.rows,
-      returnStats: returnStats.rows[0] || { on_time: 0, late: 0 },
+      circulationStats: toArray(circulationStats),
+      popularBooks: toArray(popularBooks),
+      categoryStats: toArray(categoryStats),
+      memberActivity: toArray(memberActivity),
+      overdueAnalysis: toArray(overdueAnalysis),
+      revenueStats: toArray(revenueStats),
+      returnStats: toArray(returnStats)[0] || { on_time: 0, late: 0 },
       period: daysAgo,
     })
   } catch (error) {

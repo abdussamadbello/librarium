@@ -5,6 +5,8 @@ import { Search, ChevronRight, BookOpen } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/shared/theme-toggle'
 import Link from 'next/link'
 
 interface Book {
@@ -39,35 +41,64 @@ function BookCard({ book }: { book: Book }) {
 
   return (
     <Link href={`/books/${book.book.id}`}>
-      <div className="flex-shrink-0 w-48 group cursor-pointer">
-        <div className="relative rounded-lg overflow-hidden shadow-md transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
-          <div className="w-full h-64 bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center p-4">
-            <div className="text-center">
-              <BookOpen className="w-12 h-12 text-teal-600 mx-auto mb-2" />
-              <p className="text-xs text-teal-700 font-medium line-clamp-3">{book.book.title}</p>
+      <div className="flex-shrink-0 w-56 group cursor-pointer">
+        {/* Book Cover with Enhanced Depth */}
+        <div className="relative rounded-xl overflow-hidden shadow-soft book-card-lift">
+          {/* Gradient Background */}
+          <div className="w-full h-80 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/5 flex items-center justify-center p-6 relative overflow-hidden">
+            {/* Decorative Pattern */}
+            <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary))_1px,transparent_1px)] bg-[length:20px_20px]"></div>
+            
+            {/* Content */}
+            <div className="text-center relative z-10">
+              <div className="p-4 rounded-2xl bg-primary/10 backdrop-blur-sm inline-block mb-3 group-hover:scale-110 transition-transform duration-500">
+                <BookOpen className="w-14 h-14 text-primary" />
+              </div>
+              <p className="text-sm text-foreground/80 font-serif font-medium line-clamp-4 px-2">
+                {book.book.title}
+              </p>
             </div>
+
+            {/* Shimmer Effect on Hover */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 shimmer pointer-events-none"></div>
           </div>
-          <div className="absolute top-2 right-2">
+
+          {/* Availability Badge */}
+          <div className="absolute top-3 right-3 z-20">-20">
             {isAvailable ? (
-              <Badge className="bg-green-600">Available</Badge>
+              <Badge className="bg-chart-5/90 backdrop-blur-sm shadow-lg border-0 font-mono text-xs">
+                Available
+              </Badge>
             ) : (
-              <Badge variant="destructive">Out</Badge>
-            )}
-          </div>
-        </div>
-        <div className="mt-3">
-          <h3 className="font-semibold text-sm text-zinc-900 truncate">{book.book.title}</h3>
-          <p className="text-xs text-neutral-500">{book.author?.name || 'Unknown'}</p>
-          <div className="mt-1.5">
-            {book.category && (
-              <Badge variant="outline" className="text-xs">
-                {book.category.name}
+              <Badge variant="destructive" className="backdrop-blur-sm shadow-lg font-mono text-xs">
+                Out
               </Badge>
             )}
           </div>
-          <p className="text-xs text-slate-600 mt-1">
-            {book.book.availableCopies}/{book.book.totalCopies} copies
+
+          {/* Bottom Gradient Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+        </div>
+
+        {/* Book Info */}
+        <div className="mt-4 px-1">
+          <h3 className="font-serif text-base font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-1">
+            {book.book.title}
+          </h3>
+          <p className="text-sm text-muted-foreground font-sans mb-2">
+            {book.author?.name || 'Unknown Author'}
           </p>
+          
+          <div className="flex items-center gap-2 flex-wrap">
+            {book.category && (
+              <Badge variant="outline" className="text-xs border-primary/20 text-primary font-mono">
+                {book.category.name}
+              </Badge>
+            )}
+            <span className="text-xs text-muted-foreground font-mono">
+              {book.book.availableCopies}/{book.book.totalCopies} copies
+            </span>
+          </div>
         </div>
       </div>
     </Link>
@@ -130,25 +161,28 @@ export default function Home() {
   const availableBooks = books.filter((b) => b.book.availableCopies > 0).slice(0, 6)
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-background">
       {/* Guest Header */}
-      <header className="bg-white border-b border-neutral-200 sticky top-0 z-50">
+      <header className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <BookOpen className="w-8 h-8 text-primary-teal" />
-              <span className="text-xl font-bold text-zinc-900">Librarium</span>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <BookOpen className="w-6 h-6 text-primary" />
+              </div>
+              <span className="text-2xl font-serif font-bold text-foreground">Librarium</span>
             </div>
             <div className="flex items-center space-x-4">
+              <ThemeToggle />
               <Link
                 href="/login"
-                className="text-sm font-medium text-neutral-600 hover:text-primary-teal"
+                className="text-sm font-sans font-medium text-muted-foreground hover:text-primary transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-2 bg-primary-teal text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+                className="px-6 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition-all hover:scale-105"
               >
                 Join Library
               </Link>
@@ -157,85 +191,146 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Search Section */}
-        <section className="mb-8 p-8 bg-gradient-to-r from-primary-teal to-teal-700 rounded-lg shadow-lg">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Discover your next great read
-          </h1>
-          <p className="text-teal-100 mb-6">Browse our collection and find your next favorite book.</p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Hero Search Section - Immersive Editorial Design */}
+        <section className="mb-12 p-12 bg-gradient-to-br from-[hsl(185,100%,20%)] via-[hsl(185,100%,24%)] to-[hsl(185,90%,28%)] rounded-2xl shadow-dramatic relative overflow-hidden">
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[hsl(35,60%,60%)]/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.15)_0%,transparent_50%)]"></div>
+          
+          <div className="relative z-10">
+            <h1 className="text-display-md font-display text-white mb-3 text-balance">
+              Discover your next <span className="italic font-serif">great read</span>
+            </h1>
+            <p className="text-xl text-white/90 mb-8 font-serif">
+              Explore our curated collection of timeless literature and contemporary masterpieces
+            </p>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Input
-                type="text"
-                placeholder="Search by title, ISBN, or author..."
-                className="w-full bg-white rounded-lg p-4 pl-12 text-base"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-            </div>
-            <button
-              type="submit"
-              className="flex-shrink-0 w-full md:w-auto flex items-center justify-center bg-primary-gold text-white rounded-lg px-6 py-4 text-sm font-medium shadow-sm hover:bg-amber-600 transition-colors"
-            >
-              Search Books
-            </button>
-          </form>
-
-          {/* Category Filter */}
-          {selectedCategory && (
-            <div className="mt-4 flex items-center gap-2">
-              <span className="text-white text-sm">Filtered by:</span>
-              <Badge
-                className="bg-white text-teal-700 cursor-pointer"
-                onClick={() => setSelectedCategory(null)}
+            {/* Search Bar - Elevated Design */}
+            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-primary/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <Input
+                  type="text"
+                  placeholder="Search by title, ISBN, or author..."
+                  className="w-full bg-white/95 backdrop-blur-sm rounded-xl p-6 pl-14 text-base border-0 shadow-lg hover:shadow-xl transition-all duration-300 font-sans relative z-10 focus:bg-white"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary z-20" />
+              </div>
+              <Button 
+                type="submit" 
+                className="bg-accent hover:bg-accent/90 text-foreground px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl border-0 font-sans"
               >
-                {categories.find((c) => c.id === selectedCategory)?.name} ✕
-              </Badge>
-            </div>
-          )}
+                Search Library
+              </Button>
+            </form>
+
+            {/* Category Filter */}
+            {selectedCategory && (
+              <div className="mt-6 flex items-center gap-3 animate-fade-in-up">
+                <span className="text-white/90 text-sm font-mono">Filtered by:</span>
+                <Badge
+                  className="bg-white/20 backdrop-blur-sm text-white border-white/30 cursor-pointer hover:bg-white/30 transition-colors px-4 py-1.5 font-sans"
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  {categories.find((c) => c.id === selectedCategory)?.name} ✕
+                </Badge>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* Main Content Sections */}
-        <div className="space-y-8">
+        <div className="space-y-12">
           {/* Available Now */}
           {!selectedCategory && availableBooks.length > 0 && (
-            <Card className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-zinc-900">Available Now</h2>
-              </div>
-              <div className="flex space-x-6 overflow-x-auto pb-4 -mb-4">
-                {availableBooks.map((book) => (
-                  <BookCard key={book.book.id} book={book} />
-                ))}
+            <Card className="shadow-soft border-0 overflow-hidden relative fade-in-up">
+              <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-chart-5/5 to-transparent pointer-events-none" />
+              <div className="p-8 relative z-10">
+                <div className="flex justify-between items-center mb-6 ornamental-border pb-4">
+                  <div>
+                    <h2 className="text-3xl font-serif font-bold text-foreground">Available Now</h2>
+                    <p className="text-muted-foreground mt-1 font-mono text-sm">
+                      Ready for immediate checkout
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const container = document.getElementById('available-books-scroll')
+                        if (container) container.scrollBy({ left: -300, behavior: 'smooth' })
+                      }}
+                      className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+                      aria-label="Scroll left"
+                    >
+                      <ChevronRight className="w-5 h-5 text-primary rotate-180" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const container = document.getElementById('available-books-scroll')
+                        if (container) container.scrollBy({ left: 300, behavior: 'smooth' })
+                      }}
+                      className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+                      aria-label="Scroll right"
+                    >
+                      <ChevronRight className="w-5 h-5 text-primary" />
+                    </button>
+                  </div>
+                </div>
+                <div id="available-books-scroll" className="flex gap-6 overflow-x-auto pb-6 -mx-8 px-8 scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  {availableBooks.map((book, index) => (
+                    <div key={book.book.id} className="fade-in-up flex-shrink-0" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <BookCard book={book} />
+                    </div>
+                  ))}
+                </div>
               </div>
             </Card>
           )}
 
           {/* All Books / Search Results */}
-          <Card className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-zinc-900">
-                {search ? 'Search Results' : selectedCategory ? 'Filtered Books' : 'All Books'}
-              </h2>
-              <span className="text-sm text-slate-600">{books.length} books</span>
+          <Card className="shadow-soft border-0 overflow-hidden relative fade-in-up stagger-2">
+            <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-primary/5 to-transparent pointer-events-none" />
+            <div className="p-8 relative z-10">
+              <div className="flex justify-between items-center mb-6 ornamental-border pb-4">
+                <div>
+                  <h2 className="text-3xl font-serif font-bold text-foreground">
+                    {search ? 'Search Results' : selectedCategory ? 'Filtered Books' : 'Complete Collection'}
+                  </h2>
+                  <p className="text-muted-foreground mt-1 font-mono text-sm">
+                    {books.length} {books.length === 1 ? 'title' : 'titles'} found
+                  </p>
+                </div>
+              </div>
+              
+              {loading ? (
+                <div className="text-center py-20">
+                  <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary mb-4"></div>
+                  <p className="text-muted-foreground font-mono text-sm">Curating your selection...</p>
+                </div>
+              ) : books.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="inline-flex p-6 rounded-full bg-muted/50 mb-4">
+                    <BookOpen className="w-16 h-16 text-muted-foreground/40" />
+                  </div>
+                  <h3 className="text-xl font-serif font-semibold mb-2">No Books Found</h3>
+                  <p className="text-muted-foreground">
+                    {search ? `No results for "${search}"` : 'Try adjusting your filters'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+                  {books.map((book, index) => (
+                    <div key={book.book.id} className="fade-in-up" style={{ animationDelay: `${(index % 10) * 0.05}s` }}>
+                      <BookCard book={book} />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            {loading ? (
-              <div className="text-center py-12 text-slate-500">Loading...</div>
-            ) : books.length === 0 ? (
-              <div className="text-center py-12 text-slate-500">
-                No books found{search ? ` for "${search}"` : ''}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                {books.map((book) => (
-                  <BookCard key={book.book.id} book={book} />
-                ))}
-              </div>
-            )}
           </Card>
 
           {/* Book Categories */}

@@ -64,13 +64,19 @@ export async function GET(req: NextRequest) {
       LIMIT 10
     `)
 
+    const toArray = <T>(result: any): T[] => {
+      if (Array.isArray(result)) return result
+      if ('rows' in result) return result.rows
+      return []
+    }
+
     const stats = {
       totalBooks: totalBooksResult?.count || 0,
       borrowedBooks: borrowedBooksResult?.count || 0,
       overdueBooks: overdueCount,
       totalMembers: membersResult?.count || 0,
       pendingFines: totalPendingFines,
-      categoryDistribution: categoryDist.rows || [],
+      categoryDistribution: toArray(categoryDist),
     }
 
     return NextResponse.json(stats)
