@@ -17,6 +17,8 @@ import {
   BarChart2,
   Settings,
   Clock,
+  Building2,
+  ScrollText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -31,6 +33,7 @@ const navItems: NavItem[] = [
   { label: 'Manage Books', icon: Book, href: '/admin/books' },
   { label: 'Manage Members', icon: Users, href: '/admin/members' },
   { label: 'Manage Authors', icon: UserPlus, href: '/admin/authors' },
+  { label: 'Manage Publishers', icon: Building2, href: '/admin/publishers' },
   { label: 'Manage Category', icon: BookOpen, href: '/admin/categories' },
   { label: 'QR Checkout', icon: QrCode, href: '/admin/qr-checkout' },
   { label: 'Book QR Codes', icon: QrCode, href: '/admin/book-qr-codes' },
@@ -41,6 +44,7 @@ const navItems: NavItem[] = [
   { label: 'Fines & Payments', icon: FileText, href: '/admin/fines' },
   { label: 'Staff Management', icon: Users, href: '/admin/staff' },
   { label: 'Email', icon: Mail, href: '/admin/email' },
+  { label: 'Audit Logs', icon: ScrollText, href: '/admin/audit-logs' },
   { label: 'Reports / Analytics', icon: BarChart2, href: '/admin/reports' },
   { label: 'Settings', icon: Settings, href: '/admin/settings' },
 ]
