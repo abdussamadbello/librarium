@@ -64,7 +64,7 @@ function BookCard({ book }: { book: Book }) {
           </div>
 
           {/* Availability Badge */}
-          <div className="absolute top-3 right-3 z-20">-20">
+          <div className="absolute top-3 right-3 z-20">
             {isAvailable ? (
               <Badge className="bg-chart-5/90 backdrop-blur-sm shadow-lg border-0 font-mono text-xs">
                 Available

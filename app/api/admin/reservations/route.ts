@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/config'
+import { auth } from '@/lib/auth/config'
 import { db } from '@/lib/db'
 import { reservations, books, users } from '@/lib/db/schema'
 import { eq, asc, desc } from 'drizzle-orm'
@@ -11,7 +10,7 @@ import { eq, asc, desc } from 'drizzle-orm'
  */
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     // Check if user is admin or staff
     if (!session?.user?.id || !['admin', 'staff', 'director'].includes(session.user.role || '')) {

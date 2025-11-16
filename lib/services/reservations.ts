@@ -62,7 +62,7 @@ export async function createReservation(params: CreateReservationParams) {
         )
       )
 
-    const queuePosition = Number(queueCount.count) + 1
+    const queuePosition = Number(queueCount?.count || 0) + 1
 
     // 4. Create reservation
     const result = await db.transaction(async (tx) => {
@@ -82,11 +82,11 @@ export async function createReservation(params: CreateReservationParams) {
         userId,
         action: 'create_reservation',
         entityType: 'reservation',
-        entityId: newReservation.id,
+        entityId: newReservation!.id,
         metadata: { bookId, queuePosition },
       })
 
-      return newReservation
+      return newReservation!
     })
 
     // Check if book is available and assign immediately
@@ -465,6 +465,6 @@ export async function getBookAvailability(bookId: number) {
     available: book.availableCopies && book.availableCopies > 0,
     availableCopies: book.availableCopies || 0,
     totalCopies: book.totalCopies || 0,
-    queueLength: Number(queueCount.count),
+    queueLength: Number(queueCount?.count || 0),
   }
 }

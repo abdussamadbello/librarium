@@ -7,10 +7,11 @@ import { getBookAvailability } from '@/lib/services/reservations'
  */
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const bookId = parseInt(params.id)
+    const { id } = await params
+    const bookId = parseInt(id)
 
     if (isNaN(bookId)) {
       return NextResponse.json({ error: 'Invalid book ID' }, { status: 400 })

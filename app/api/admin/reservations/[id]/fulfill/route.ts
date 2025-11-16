@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/config'
+import { auth } from '@/lib/auth/config'
 import { fulfillReservation } from '@/lib/services/reservations'
 
 /**
@@ -9,17 +8,18 @@ import { fulfillReservation } from '@/lib/services/reservations'
  */
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     // Check if user is admin or staff
     if (!session?.user?.id || !['admin', 'staff', 'director'].includes(session.user.role || '')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const reservationId = parseInt(params.id)
+    const { id } = await params
+    const reservationId = parseInt(id)
 
     if (isNaN(reservationId)) {
       return NextResponse.json({ error: 'Invalid reservation ID' }, { status: 400 })

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/config'
+import { auth } from '@/lib/auth/config'
 import { createReservation, getUserReservations } from '@/lib/services/reservations'
 import { createReservationSchema, listReservationsSchema } from '@/lib/validations/reservation'
 
@@ -10,7 +9,7 @@ import { createReservationSchema, listReservationsSchema } from '@/lib/validatio
  */
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -21,7 +20,7 @@ export async function POST(req: Request) {
     const validation = createReservationSchema.safeParse(body)
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid input', details: validation.error.errors },
+        { error: 'Invalid input', details: validation.error.format() },
         { status: 400 }
       )
     }
@@ -59,7 +58,7 @@ export async function POST(req: Request) {
  */
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -73,7 +72,7 @@ export async function GET(req: Request) {
     const validation = listReservationsSchema.safeParse({ status, page, limit })
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid query parameters', details: validation.error.errors },
+        { error: 'Invalid query parameters', details: validation.error.format() },
         { status: 400 }
       )
     }

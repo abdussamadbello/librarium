@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/config'
+import { auth } from '@/lib/auth/config'
 import { cancelReservation } from '@/lib/services/reservations'
 import { db } from '@/lib/db'
 import { reservations, books } from '@/lib/db/schema'
@@ -12,15 +11,16 @@ import { eq } from 'drizzle-orm'
  */
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const reservationId = parseInt(params.id)
+    const { id } = await params
+    const reservationId = parseInt(id)
 
     if (isNaN(reservationId)) {
       return NextResponse.json({ error: 'Invalid reservation ID' }, { status: 400 })
@@ -62,15 +62,16 @@ export async function GET(
  */
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const reservationId = parseInt(params.id)
+    const { id } = await params
+    const reservationId = parseInt(id)
 
     if (isNaN(reservationId)) {
       return NextResponse.json({ error: 'Invalid reservation ID' }, { status: 400 })

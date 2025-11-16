@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/config'
+import { auth } from '@/lib/auth/config'
 import { db } from '@/lib/db'
-import { transactions, books, authors, members } from '@/lib/db/schema'
+import { transactions, books, authors, users, bookCopies } from '@/lib/db/schema'
 import { eq, and, or, isNull } from 'drizzle-orm'
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -23,9 +22,10 @@ export async function GET(req: Request) {
         author: authors,
       })
       .from(transactions)
-      .leftJoin(books, eq(transactions.bookId, books.id))
+      .leftJoin(bookCopies, eq(transactions.bookCopyId, bookCopies.id))
+      .leftJoin(books, eq(bookCopies.bookId, books.id))
       .leftJoin(authors, eq(books.authorId, authors.id))
-      .where(eq(transactions.memberId, session.user.id))
+      .where(eq(transactions.userId, session.user.id))
       .orderBy(transactions.checkoutDate)
 
     const formattedHistory = history.map((item) => ({
@@ -66,8 +66,8 @@ export async function GET(req: Request) {
           `"${row.title.replace(/"/g, '""')}"`,
           `"${row.author.replace(/"/g, '""')}"`,
           row.isbn,
-          new Date(row.checkoutDate).toLocaleDateString(),
-          new Date(row.dueDate).toLocaleDateString(),
+          row.checkoutDate ? new Date(row.checkoutDate).toLocaleDateString() : '',
+          row.dueDate ? new Date(row.dueDate).toLocaleDateString() : '',
           row.returnDate ? new Date(row.returnDate).toLocaleDateString() : '',
           row.status,
           `"${row.notes.replace(/"/g, '""')}"`,
