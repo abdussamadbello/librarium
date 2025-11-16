@@ -29,7 +29,7 @@ interface BookData {
   author: {
     id: number
     name: string
-    biography: string | null
+    bio: string | null
   } | null
   category: {
     id: number
@@ -70,8 +70,11 @@ export default function BookDetailPage() {
   const [userReview, setUserReview] = useState<any>(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [reviewsLoading, setReviewsLoading] = useState(false)
+  const [showFullDescription, setShowFullDescription] = useState(false)
 
   useEffect(() => {
+    if (!params.id) return
+    
     fetchBook()
     fetchAvailability()
     fetchReviews()
@@ -80,14 +83,25 @@ export default function BookDetailPage() {
 
   const fetchBook = async () => {
     try {
+      console.log('Fetching book with ID:', params.id)
       const res = await fetch(`/api/books/${params.id}`)
+      console.log('Response status:', res.status)
+      
       if (!res.ok) {
-        throw new Error('Book not found')
+        const errorData = await res.json()
+        console.error('Error response:', errorData)
+        throw new Error(errorData.error || 'Book not found')
       }
       const data = await res.json()
+      console.log('Book data received:', data)
       setBookData(data)
     } catch (error) {
       console.error('Failed to fetch book:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to load book',
+        variant: 'destructive',
+      })
     } finally {
       setLoading(false)
     }
@@ -219,7 +233,8 @@ export default function BookDetailPage() {
       <div className="text-center py-20">
         <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Book Not Found</h2>
-        <p className="text-slate-600 mb-6">The book you&apos;re looking for doesn&apos;t exist.</p>
+        <p className="text-slate-600 mb-2">The book you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+        <p className="text-sm text-slate-500 mb-6">Book ID: {params.id}</p>
         <Link href="/member/discover">
           <Button className="bg-teal-600 hover:bg-teal-700">Browse Books</Button>
         </Link>
@@ -229,358 +244,291 @@ export default function BookDetailPage() {
 
   const { book, author, category, copies } = bookData
   const isAvailable = book.availableCopies > 0
+  const descriptionLimit = 200
+  const shouldTruncate = book.description && book.description.length > descriptionLimit
+  const displayDescription = shouldTruncate && !showFullDescription && book.description
+    ? book.description.slice(0, descriptionLimit) + '...'
+    : book.description
 
   return (
-    <div className="container max-w-7xl mx-auto space-y-6">
+    <div className="container max-w-7xl mx-auto space-y-8 py-6">
       {/* Back Button */}
       <Link
         href="/member/discover"
-        className="inline-flex items-center text-sm text-teal-600 hover:text-teal-700"
+        className="inline-flex items-center text-sm text-primary hover:text-primary/80 font-sans font-medium transition-colors"
       >
         <ArrowLeft className="w-4 h-4 mr-1" />
         Back to Discover
       </Link>
 
       {/* Book Header */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Book Cover */}
         <div className="md:col-span-1">
-          <div className="w-full aspect-[3/4] bg-gradient-to-br from-teal-100 to-teal-200 rounded-lg shadow-lg flex items-center justify-center p-8">
-            <div className="text-center">
-              <BookOpen className="w-24 h-24 text-teal-600 mx-auto mb-4" />
-              <p className="text-sm text-teal-700 font-medium">{book.title}</p>
+          <div className="w-full aspect-[3/4] bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 rounded-2xl shadow-lg flex items-center justify-center p-8 relative overflow-hidden">
+            {/* Decorative Pattern */}
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_50%_50%,white_1px,transparent_1px)] bg-[length:20px_20px]"></div>
+            
+            <div className="text-center relative z-10">
+              <p className="text-white text-xl font-serif font-bold px-6 leading-tight">{book.title}</p>
             </div>
           </div>
         </div>
 
         {/* Book Info */}
-        <div className="md:col-span-2 space-y-4">
+        <div className="md:col-span-2 space-y-6">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">{book.title}</h1>
+            <h1 className="text-4xl font-serif font-bold text-foreground mb-2 leading-tight">{book.title}</h1>
             {author && (
-              <p className="text-xl text-slate-600">by {author.name}</p>
+              <p className="text-xl text-muted-foreground font-sans mb-3">by {author.name}</p>
+            )}
+            
+            {/* Rating Display */}
+            {ratingStats && ratingStats.totalReviews > 0 && (
+              <div className="flex items-center gap-3 mb-4">
+                <StarRating rating={ratingStats.averageRating} size="md" />
+                <span className="text-lg font-semibold text-foreground">
+                  {ratingStats.averageRating.toFixed(1)}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {ratingStats.totalReviews} {ratingStats.totalReviews === 1 ? 'rating' : 'ratings'}
+                </span>
+              </div>
             )}
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            {category && <Badge variant="outline">{category.name}</Badge>}
+            {category && <Badge variant="outline" className="border-primary/20 text-primary font-sans">Fantasy</Badge>}
+            <Badge variant="outline" className="border-primary/20 text-primary font-sans">Young Adult</Badge>
+            <Badge variant="outline" className="border-primary/20 text-primary font-sans">Series #1</Badge>
+          </div>
+
+          {/* Publication Info */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Published:</span>
+              <span className="font-medium">{book.publicationYear || 'N/A'}</span>
+              <span className="text-muted-foreground">• {book.publisher}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">ISBN 10:</span>
+              <span className="font-medium">{book.isbn || 'N/A'}</span>
+            </div>
+          </div>
+
+          {/* Availability Status */}
+          <div>
             {isAvailable ? (
-              <Badge className="bg-green-600">
-                {book.availableCopies} Available
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white font-sans px-3 py-1">
+                  Available
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  - {book.availableCopies} of {book.totalCopies} copies in library
+                </span>
+              </div>
             ) : (
-              <Badge variant="destructive">Out of Stock</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="destructive" className="font-sans px-3 py-1">
+                  Borrowed
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  Not due date: {copies.find(c => c.status === 'borrowed') ? 'N/A' : 'N/A'}
+                </span>
+              </div>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-4">
-            <div className="flex items-start gap-2">
-              <Building className="w-5 h-5 text-slate-400 mt-0.5" />
-              <div>
-                <p className="text-sm text-slate-500">Publisher</p>
-                <p className="font-medium">{book.publisher}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <Calendar className="w-5 h-5 text-slate-400 mt-0.5" />
-              <div>
-                <p className="text-sm text-slate-500">Year</p>
-                <p className="font-medium">{book.publicationYear || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <Tag className="w-5 h-5 text-slate-400 mt-0.5" />
-              <div>
-                <p className="text-sm text-slate-500">ISBN</p>
-                <p className="font-medium">{book.isbn || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <BookOpen className="w-5 h-5 text-slate-400 mt-0.5" />
-              <div>
-                <p className="text-sm text-slate-500">Copies</p>
-                <p className="font-medium">
-                  {book.availableCopies}/{book.totalCopies}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Availability & Reservation Actions */}
-          <div className="pt-4 space-y-4">
-            {/* Queue Information */}
-            {availability && availability.queueLength > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 shadow-soft">
-                <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-amber-600 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-amber-900">
-                      {availability.queueLength} {availability.queueLength === 1 ? 'person' : 'people'} in queue
-                    </p>
-                    <p className="text-xs text-amber-700 mt-1">
-                      There is currently a waitlist for this book
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* User's Active Reservation */}
-            {availability?.userReservation && (
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4 shadow-soft">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <Bell className="w-5 h-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-primary">
-                        You have an active reservation
-                      </p>
-                      <p className="text-xs text-primary/70 mt-1">
-                        Queue position: #{availability.userReservation.queuePosition}
-                      </p>
-                      {availability.userReservation.status === 'fulfilled' && (
-                        <p className="text-xs text-primary font-medium mt-2">
-                          Book is ready for pickup! Please visit the library within 48 hours.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancelReservation}
-                    disabled={actionLoading}
-                    className="border-primary/30 text-primary hover:bg-primary/10"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Action Button */}
-            {!availability?.userReservation && (
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
+            {isAvailable ? (
+              <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-sans px-6">
+                Borrow this book
+              </Button>
+            ) : (
               <>
-                {isAvailable ? (
-                  <div className="bg-gradient-to-br from-teal-50 to-teal-100/50 border border-teal-200 rounded-lg p-6 shadow-soft">
-                    <div className="flex items-start gap-3 mb-4">
-                      <BookOpen className="w-6 h-6 text-teal-600 mt-0.5" />
-                      <div>
-                        <p className="font-serif text-lg font-semibold text-teal-900 mb-1">
-                          This book is available!
-                        </p>
-                        <p className="text-sm text-teal-700">
-                          Visit the library to borrow it, or contact a librarian for assistance.
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transition-all"
-                    >
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      Visit Library to Borrow
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 border border-slate-200 rounded-lg p-6 shadow-soft">
-                    <div className="flex items-start gap-3 mb-4">
-                      <Bell className="w-6 h-6 text-slate-600 mt-0.5" />
-                      <div>
-                        <p className="font-serif text-lg font-semibold text-slate-900 mb-1">
-                          All copies are currently borrowed
-                        </p>
-                        <p className="text-sm text-slate-600">
-                          Reserve this book and we&apos;ll notify you when it becomes available.
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={handleReserve}
-                      disabled={actionLoading}
-                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transition-all"
-                    >
-                      <Bell className="w-4 h-4 mr-2" />
-                      {actionLoading ? 'Reserving...' : 'Reserve This Book'}
-                    </Button>
-                  </div>
+                {!availability?.userReservation && (
+                  <Button 
+                    onClick={handleReserve}
+                    disabled={actionLoading}
+                    className="bg-destructive hover:bg-destructive/90 text-white font-sans px-6"
+                  >
+                    {actionLoading ? 'Reserving...' : 'Borrow'}
+                  </Button>
                 )}
               </>
             )}
+            <Button variant="outline" className="font-sans">
+              Add to reading list
+            </Button>
           </div>
+
+          {/* Queue/Reservation Info */}
+          {availability?.userReservation && (
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <Bell className="w-5 h-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-primary">
+                      You have an active reservation
+                    </p>
+                    <p className="text-xs text-primary/70 mt-1">
+                      Queue position: #{availability.userReservation.queuePosition}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelReservation}
+                  disabled={actionLoading}
+                  className="border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Description */}
-      {book.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-slate-700 leading-relaxed">{book.description}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Author Bio */}
-      {author?.biography && (
-        <Card>
-          <CardHeader>
-            <CardTitle>About the Author</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-start gap-4">
-              <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">
-                <User className="w-8 h-8 text-slate-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg text-slate-900 mb-1">{author.name}</h3>
-                <p className="text-slate-700 leading-relaxed">{author.biography}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Copy Details */}
-      <Card>
+      <Card className="shadow-soft border-0">
         <CardHeader>
-          <CardTitle>Copy Availability</CardTitle>
+          <CardTitle className="font-serif text-2xl text-foreground">Description</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {copies.map((copy) => (
-              <div
-                key={copy.id}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
-              >
-                <div>
-                  <span className="text-sm font-medium">
-                    Copy #{copy.copyNumber || copy.id}
-                  </span>
-                  {copy.condition && (
-                    <span className="text-xs text-slate-500 ml-2">
-                      ({copy.condition})
-                    </span>
-                  )}
-                </div>
-                <Badge
-                  variant={copy.status === 'available' ? 'default' : 'secondary'}
-                  className={copy.status === 'available' ? 'bg-green-600' : ''}
-                >
-                  {copy.status}
-                </Badge>
-              </div>
-            ))}
+          <p className="text-foreground leading-relaxed font-sans whitespace-pre-line">
+            {displayDescription || 'No description available.'}
+          </p>
+          {shouldTruncate && (
+            <Button
+              variant="link"
+              className="mt-2 p-0 h-auto font-sans text-primary"
+              onClick={() => setShowFullDescription(!showFullDescription)}
+            >
+              {showFullDescription ? 'Read less' : 'Read more'}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Copies Section */}
+      <Card className="shadow-soft border-0">
+        <CardHeader>
+          <CardTitle className="font-serif text-2xl text-foreground">Copies</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 mb-4">
+            <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white font-sans">
+              ● Available
+            </Badge>
+            <Badge variant="destructive" className="font-sans">
+              ● Borrowed
+            </Badge>
+          </div>
+          
+          <div className="border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left py-3 px-4 font-sans font-semibold text-sm">COPY</th>
+                  <th className="text-left py-3 px-4 font-sans font-semibold text-sm">CONDITION</th>
+                  <th className="text-left py-3 px-4 font-sans font-semibold text-sm">STATUS</th>
+                  <th className="text-left py-3 px-4 font-sans font-semibold text-sm">DUE DATE</th>
+                  <th className="text-right py-3 px-4 font-sans font-semibold text-sm"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {copies.map((copy, index) => (
+                  <tr key={copy.id} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                    <td className="py-3 px-4 font-sans">#{copy.copyNumber || copy.id}</td>
+                    <td className="py-3 px-4 font-sans capitalize">{copy.condition || 'Good'}</td>
+                    <td className="py-3 px-4">
+                      <Badge 
+                        className={copy.status === 'available' 
+                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white font-sans' 
+                          : 'bg-destructive hover:bg-destructive/90 font-sans'
+                        }
+                      >
+                        {copy.status === 'available' ? 'Available' : 'Borrowed'}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4 font-sans text-sm">
+                      —
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      {copy.status === 'available' && (
+                        <Button 
+                          size="sm" 
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white font-sans"
+                        >
+                          Borrow
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
 
-      {/* Reviews & Ratings */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <Star className="w-7 h-7 fill-amber-400 text-amber-400" />
-            Reviews & Ratings
-          </h2>
-          {ratingStats && ratingStats.totalReviews > 0 && (
-            <div className="flex items-center gap-2">
-              <StarRating rating={ratingStats.averageRating} size="md" />
-              <span className="text-sm text-slate-600">
-                {ratingStats.averageRating.toFixed(1)} ({ratingStats.totalReviews})
-              </span>
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Rating Statistics */}
-          <div className="lg:col-span-1">
-            {ratingStats && (
-              <RatingStats
-                averageRating={ratingStats.averageRating}
-                totalReviews={ratingStats.totalReviews}
-                verifiedReviews={ratingStats.verifiedReviews}
-                ratingDistribution={ratingStats.ratingDistribution}
-              />
-            )}
-          </div>
-
-          {/* Reviews List & Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Write Review Section */}
-            {session?.user && (
-              <Card className="shadow-soft border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>
-                      {userReview ? 'Your Review' : 'Write a Review'}
-                    </span>
-                    {userReview && !showReviewForm && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowReviewForm(true)}
-                        className="border-primary/30 text-primary hover:bg-primary/10"
-                      >
-                        Edit Review
-                      </Button>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {!userReview || showReviewForm ? (
+      {/* Reviews & Ratings Section */}
+      <Card className="shadow-soft border-0">
+        <CardHeader>
+          <CardTitle className="font-serif text-2xl text-foreground">Reviews & Ratings</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Rating Stats */}
+          {ratingStats ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <RatingStats {...ratingStats} />
+              </div>
+              
+              {/* Write Review Form (for authenticated users without review) */}
+              <div className="lg:col-span-2">
+                {!userReview ? (
+                  <div className="bg-muted/30 border border-border rounded-lg p-6">
+                    <h3 className="font-serif text-xl font-semibold mb-4">Write a review</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Share your thoughts about this book
+                    </p>
                     <ReviewForm
-                      bookId={Number(params.id)}
-                      existingReview={userReview}
+                      bookId={book.id}
                       onSuccess={handleReviewChange}
                     />
-                  ) : (
-                    <div className="space-y-3">
-                      <StarRating rating={userReview.rating} size="md" />
-                      {userReview.reviewText && (
-                        <p className="text-slate-700 leading-relaxed">
-                          {userReview.reviewText}
-                        </p>
-                      )}
-                      <p className="text-xs text-slate-500">
-                        Posted on {new Date(userReview.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Reviews List */}
-            <Card className="shadow-soft">
-              <CardHeader>
-                <CardTitle>
-                  {reviews.length > 0
-                    ? `All Reviews (${reviews.length})`
-                    : 'Reviews'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {reviewsLoading ? (
-                  <div className="text-center py-12">
-                    <p className="text-slate-600">Loading reviews...</p>
                   </div>
                 ) : (
-                  <ReviewsList
-                    reviews={reviews}
-                    currentUserId={session?.user?.id}
-                    onReviewChange={handleReviewChange}
-                  />
+                  <div className="bg-muted/30 border border-border rounded-lg p-6 text-center">
+                    <p className="text-muted-foreground">
+                      You have already reviewed this book
+                    </p>
+                  </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No ratings yet. Be the first to review!</p>
+            </div>
+          )}
+
+          {/* Reviews List */}
+          {reviews.length > 0 && (
+            <div className="border-t pt-6">
+              <ReviewsList
+                reviews={reviews}
+                currentUserId={session?.user?.id}
+                onReviewChange={handleReviewChange}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

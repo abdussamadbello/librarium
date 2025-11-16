@@ -11,8 +11,7 @@ const isNeon = process.env.DATABASE_URL?.includes('neon.tech') ||
 let db: ReturnType<typeof drizzleNeon> | ReturnType<typeof drizzlePostgres>;
 
 if (isNeon) {
-  // Use Neon serverless for cloud/production
-  neonConfig.fetchConnectionCache = true;
+  // Use Neon serverless for cloud/production 
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   db = drizzleNeon(pool, { schema });
 } else {

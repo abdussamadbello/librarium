@@ -453,7 +453,25 @@ export async function getUserReservations(userId: string) {
   return await db
     .select({
       reservation: reservations,
-      book: books,
+      book: {
+        id: books.id,
+        title: books.title,
+        isbn: books.isbn,
+        authorId: books.authorId,
+        categoryId: books.categoryId,
+        publisher: books.publisher,
+        publisherId: books.publisherId,
+        publicationYear: books.publicationYear,
+        language: books.language,
+        description: books.description,
+        coverImageUrl: books.coverImageUrl,
+        totalCopies: books.totalCopies,
+        availableCopies: books.availableCopies,
+        shelfLocation: books.shelfLocation,
+        tags: books.tags,
+        createdAt: books.createdAt,
+        updatedAt: books.updatedAt,
+      },
     })
     .from(reservations)
     .leftJoin(books, eq(reservations.bookId, books.id))

@@ -9,6 +9,10 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
+import { StarRating } from '@/components/ui/star-rating'
+import { RatingStats } from '@/components/reviews/rating-stats'
+import { ReviewsList } from '@/components/reviews/reviews-list'
+import { ReviewForm } from '@/components/reviews/review-form'
 
 interface BookData {
   book: {
@@ -25,7 +29,7 @@ interface BookData {
   author: {
     id: number
     name: string
-    biography: string | null
+    bio: string | null
   } | null
   category: {
     id: number
@@ -37,7 +41,37 @@ interface BookData {
     copyNumber: number | null
     status: string
     condition: string | null
+    dueDate?: Date | string | null
   }>
+}
+
+interface RatingStats {
+  averageRating: number
+  totalReviews: number
+  verifiedReviews: number
+  ratingDistribution: {
+    1: number
+    2: number
+    3: number
+    4: number
+    5: number
+  }
+}
+
+interface Review {
+  review: {
+    id: number
+    rating: number
+    reviewText: string | null
+    isVerifiedBorrower: boolean
+    createdAt: Date | string
+    updatedAt: Date | string
+  }
+  user: {
+    id: string
+    name: string | null
+    image: string | null
+  } | null
 }
 
 export default function BookDetailPage() {
@@ -45,25 +79,64 @@ export default function BookDetailPage() {
   const router = useRouter()
   const { data: session } = useSession()
   const [bookData, setBookData] = useState<BookData | null>(null)
+  const [ratingStats, setRatingStats] = useState<RatingStats | null>(null)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [userReview, setUserReview] = useState<Review | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showFullDescription, setShowFullDescription] = useState(false)
 
   useEffect(() => {
-    fetchBook()
+    if (!params.id) return
+    fetchBookData()
   }, [params.id])
 
-  const fetchBook = async () => {
+  const fetchBookData = async () => {
     try {
-      const res = await fetch(`/api/books/${params.id}`)
-      if (!res.ok) {
-        throw new Error('Book not found')
+      console.log('Fetching book with ID:', params.id)
+      
+      // Fetch book details
+      const bookRes = await fetch(`/api/books/${params.id}`)
+      console.log('Book response status:', bookRes.status)
+      
+      if (!bookRes.ok) {
+        const errorData = await bookRes.json()
+        console.error('Error response:', errorData)
+        throw new Error(errorData.error || 'Book not found')
       }
-      const data = await res.json()
-      setBookData(data)
+      const bookData = await bookRes.json()
+      console.log('Book data received:', bookData)
+      setBookData(bookData)
+
+      // Fetch rating stats
+      const statsRes = await fetch(`/api/books/${params.id}/reviews/stats`)
+      if (statsRes.ok) {
+        const stats = await statsRes.json()
+        setRatingStats(stats)
+      }
+
+      // Fetch reviews
+      const reviewsRes = await fetch(`/api/books/${params.id}/reviews?limit=10`)
+      if (reviewsRes.ok) {
+        const reviewsData = await reviewsRes.json()
+        setReviews(reviewsData.reviews || [])
+        
+        // Check if current user has reviewed
+        if (session?.user?.id) {
+          const userReviewData = reviewsData.reviews?.find(
+            (r: Review) => r.user?.id === session.user.id
+          )
+          setUserReview(userReviewData || null)
+        }
+      }
     } catch (error) {
-      console.error('Failed to fetch book:', error)
+      console.error('Failed to fetch book data:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleReviewChange = () => {
+    fetchBookData()
   }
 
   if (loading) {
@@ -170,6 +243,12 @@ export default function BookDetailPage() {
   const isAvailable = book.availableCopies > 0
   const backUrl = session ? "/member/discover" : "/discover"
 
+  const descriptionLimit = 200
+  const shouldTruncate = book.description && book.description.length > descriptionLimit
+  const displayDescription = shouldTruncate && !showFullDescription && book.description
+    ? book.description.slice(0, descriptionLimit) + '...'
+    : book.description
+
   const content = (
     <div className="space-y-8">
       {/* Back Button */}
@@ -185,15 +264,12 @@ export default function BookDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Book Cover */}
         <div className="md:col-span-1">
-          <div className="w-full aspect-[3/4] bg-gradient-to-br from-primary/10 via-accent/20 to-primary/5 rounded-2xl shadow-soft flex items-center justify-center p-8 relative overflow-hidden">
+          <div className="w-full aspect-[3/4] bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 rounded-2xl shadow-lg flex items-center justify-center p-8 relative overflow-hidden">
             {/* Decorative Pattern */}
-            <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary))_1px,transparent_1px)] bg-[length:20px_20px]"></div>
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_50%_50%,white_1px,transparent_1px)] bg-[length:20px_20px]"></div>
             
             <div className="text-center relative z-10">
-              <div className="p-6 rounded-2xl bg-primary/10 backdrop-blur-sm inline-block mb-4">
-                <BookOpen className="w-20 h-20 text-primary" />
-              </div>
-              <p className="text-sm text-foreground/80 font-serif font-medium px-4 line-clamp-3">{book.title}</p>
+              <p className="text-white text-xl font-serif font-bold px-6 leading-tight">{book.title}</p>
             </div>
           </div>
         </div>
@@ -201,157 +277,216 @@ export default function BookDetailPage() {
         {/* Book Info */}
         <div className="md:col-span-2 space-y-6">
           <div>
-            <h1 className="text-5xl font-serif font-bold text-foreground mb-3 leading-tight">{book.title}</h1>
+            <h1 className="text-4xl font-serif font-bold text-foreground mb-2 leading-tight">{book.title}</h1>
             {author && (
-              <p className="text-2xl text-muted-foreground font-serif">by {author.name}</p>
+              <p className="text-xl text-muted-foreground font-sans mb-3">by {author.name}</p>
+            )}
+            
+            {/* Rating Display */}
+            {ratingStats && ratingStats.totalReviews > 0 && (
+              <div className="flex items-center gap-3 mb-4">
+                <StarRating rating={ratingStats.averageRating} size="md" />
+                <span className="text-lg font-semibold text-foreground">
+                  {ratingStats.averageRating.toFixed(1)}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {ratingStats.totalReviews} {ratingStats.totalReviews === 1 ? 'rating' : 'ratings'}
+                </span>
+              </div>
             )}
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            {category && <Badge variant="outline" className="border-primary/20 text-primary font-mono">{category.name}</Badge>}
-            {isAvailable ? (
-              <Badge className="bg-chart-5 hover:bg-chart-5 font-mono">
-                {book.availableCopies} Available
-              </Badge>
-            ) : (
-              <Badge variant="destructive" className="font-mono">Out of Stock</Badge>
-            )}
+            {category && <Badge variant="outline" className="border-primary/20 text-primary font-sans">Fantasy</Badge>}
+            {category && <Badge variant="outline" className="border-primary/20 text-primary font-sans">Young Adult</Badge>}
+            {category && <Badge variant="outline" className="border-primary/20 text-primary font-sans">Series #1</Badge>}
           </div>
 
-          <div className="grid grid-cols-2 gap-6 pt-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Building className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground font-mono">Publisher</p>
-                <p className="font-semibold font-sans">{book.publisher}</p>
-              </div>
+          {/* Publication Info */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Published:</span>
+              <span className="font-medium">{book.publicationYear || 'N/A'}</span>
+              <span className="text-muted-foreground">• seconday Publishing</span>
             </div>
-
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Calendar className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground font-mono">Year</p>
-                <p className="font-semibold font-sans">{book.publicationYear || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Tag className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground font-mono">ISBN</p>
-                <p className="font-semibold font-sans">{book.isbn || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <BookOpen className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground font-mono">Copies</p>
-                <p className="font-semibold font-sans">
-                  {book.availableCopies}/{book.totalCopies}
-                </p>
-              </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">ISBN 10:</span>
+              <span className="font-medium">{book.isbn || 'N/A'}</span>
             </div>
           </div>
 
-          <div className="pt-4">
+          {/* Availability Status */}
+          <div>
             {isAvailable ? (
-              <div className="bg-chart-5/10 border border-chart-5/30 rounded-xl p-6">
-                <p className="text-sm text-foreground font-sans">
-                  <strong className="font-semibold">This book is available!</strong> 
-                  {!session ? (
-                    <> <Link href="/login" className="underline font-semibold text-primary hover:text-primary/80">Sign in</Link> or <Link href="/register" className="underline font-semibold text-primary hover:text-primary/80">join the library</Link> to borrow it.</>
-                  ) : (
-                    <> Visit the library to borrow it, or contact a librarian for assistance.</>
-                  )}
-                </p>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white font-sans px-3 py-1">
+                  Available
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  - {book.availableCopies} of {book.totalCopies} copies in library
+                </span>
               </div>
             ) : (
-              <div className="bg-accent/10 border border-accent/30 rounded-xl p-6">
-                <p className="text-sm text-foreground font-sans">
-                  All copies are currently borrowed. 
-                  {!session ? (
-                    <> <Link href="/login" className="underline font-semibold text-primary hover:text-primary/80">Sign in</Link> to check back later or ask a librarian about reserving a copy.</>
-                  ) : (
-                    <> Check back later or ask a librarian about reserving a copy.</>
-                  )}
-                </p>
+              <div className="flex items-center gap-2">
+                <Badge variant="destructive" className="font-sans px-3 py-1">
+                  Borrowed
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  Not due date: {copies.find(c => c.dueDate)?.dueDate ? new Date(copies.find(c => c.dueDate)!.dueDate!).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
+                </span>
               </div>
             )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
+            {isAvailable ? (
+              <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-sans px-6">
+                Borrow this book
+              </Button>
+            ) : (
+              <Button className="bg-destructive hover:bg-destructive/90 text-white font-sans px-6">
+                Borrow
+              </Button>
+            )}
+            <Button variant="outline" className="font-sans">
+              Add to reading list
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Description */}
-      {book.description && (
-        <Card className="shadow-soft border-0">
-          <CardHeader>
-            <CardTitle className="font-serif text-2xl text-foreground">Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-foreground leading-relaxed font-sans">{book.description}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Author Bio */}
-      {author?.biography && (
-        <Card className="shadow-soft border-0">
-          <CardHeader>
-            <CardTitle className="font-serif text-2xl text-foreground">About the Author</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-start gap-4">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                <User className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-xl font-serif text-foreground mb-2">{author.name}</h3>
-                <p className="text-muted-foreground leading-relaxed font-sans">{author.biography}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Copy Details */}
       <Card className="shadow-soft border-0">
         <CardHeader>
-          <CardTitle className="font-serif text-2xl text-foreground">Copy Availability</CardTitle>
+          <CardTitle className="font-serif text-2xl text-foreground">Description</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {copies.map((copy) => (
-              <div
-                key={copy.id}
-                className="flex items-center justify-between p-4 bg-muted/50 rounded-xl transition-all hover:shadow-soft"
-              >
-                <div>
-                  <span className="text-sm font-semibold font-sans">
-                    Copy #{copy.copyNumber || copy.id}
-                  </span>
-                  {copy.condition && (
-                    <span className="text-xs text-muted-foreground ml-2 font-mono">
-                      ({copy.condition})
-                    </span>
-                  )}
-                </div>
-                <Badge
-                  variant={copy.status === 'available' ? 'default' : 'secondary'}
-                  className={copy.status === 'available' ? 'bg-chart-5 hover:bg-chart-5 font-mono' : 'font-mono'}
-                >
-                  {copy.status}
-                </Badge>
+          <p className="text-foreground leading-relaxed font-sans whitespace-pre-line">
+            {displayDescription || 'No description available.'}
+          </p>
+          {shouldTruncate && (
+            <Button
+              variant="link"
+              className="mt-2 p-0 h-auto font-sans text-primary"
+              onClick={() => setShowFullDescription(!showFullDescription)}
+            >
+              {showFullDescription ? 'Read less' : 'Read more'}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Copies Section */}
+      <Card className="shadow-soft border-0">
+        <CardHeader>
+          <CardTitle className="font-serif text-2xl text-foreground">Copies</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 mb-4">
+            <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white font-sans">
+              ● Available
+            </Badge>
+            <Badge variant="destructive" className="font-sans">
+              ● Borrowed
+            </Badge>
+          </div>
+          
+          <div className="border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left py-3 px-4 font-sans font-semibold text-sm">COPY</th>
+                  <th className="text-left py-3 px-4 font-sans font-semibold text-sm">CONDITION</th>
+                  <th className="text-left py-3 px-4 font-sans font-semibold text-sm">STATUS</th>
+                  <th className="text-left py-3 px-4 font-sans font-semibold text-sm">DUE DATE</th>
+                  <th className="text-right py-3 px-4 font-sans font-semibold text-sm"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {copies.map((copy, index) => (
+                  <tr key={copy.id} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                    <td className="py-3 px-4 font-sans">#{copy.copyNumber || copy.id}</td>
+                    <td className="py-3 px-4 font-sans">{copy.condition || 'Good'}</td>
+                    <td className="py-3 px-4">
+                      <Badge 
+                        className={copy.status === 'available' 
+                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white font-sans' 
+                          : 'bg-destructive hover:bg-destructive/90 font-sans'
+                        }
+                      >
+                        {copy.status === 'available' ? 'Available' : 'Borrowed'}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4 font-sans text-sm">
+                      {copy.dueDate 
+                        ? new Date(copy.dueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : '—'
+                      }
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      {copy.status === 'available' && (
+                        <Button 
+                          size="sm" 
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white font-sans"
+                        >
+                          Borrow
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reviews & Ratings Section */}
+      <Card className="shadow-soft border-0">
+        <CardHeader>
+          <CardTitle className="font-serif text-2xl text-foreground">Reviews & Ratings</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Rating Stats */}
+          {ratingStats && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <RatingStats {...ratingStats} />
               </div>
-            ))}
+              
+              {/* Write Review Form (for authenticated users without review) */}
+              <div className="lg:col-span-2">
+                {session && !userReview ? (
+                  <div className="bg-muted/30 border border-border rounded-lg p-6">
+                    <h3 className="font-serif text-xl font-semibold mb-4">Write a review</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Share your thoughts about this book
+                    </p>
+                    <ReviewForm
+                      bookId={book.id}
+                      onSuccess={handleReviewChange}
+                    />
+                  </div>
+                ) : !session ? (
+                  <div className="bg-muted/30 border border-border rounded-lg p-6 text-center">
+                    <p className="text-muted-foreground mb-4">
+                      <Link href="/login" className="underline font-semibold text-primary hover:text-primary/80">Sign in</Link>
+                      {' '}to write a review
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          {/* Reviews List */}
+          <div className="border-t pt-6">
+            <ReviewsList
+              reviews={reviews}
+              currentUserId={session?.user?.id}
+              onReviewChange={handleReviewChange}
+            />
           </div>
         </CardContent>
       </Card>
