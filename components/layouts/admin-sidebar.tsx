@@ -16,6 +16,7 @@ import {
   Mail,
   BarChart2,
   Settings,
+  Clock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { label: 'Manage Category', icon: BookOpen, href: '/admin/categories' },
   { label: 'QR Checkout', icon: QrCode, href: '/admin/qr-checkout' },
   { label: 'Book QR Codes', icon: QrCode, href: '/admin/book-qr-codes' },
+  { label: 'Reservations', icon: Clock, href: '/admin/reservations' },
   { label: 'Issued Books', icon: ArrowRight, href: '/admin/issued' },
   { label: 'Returned Books', icon: ArrowLeft, href: '/admin/returned' },
   { label: 'Overdue Books', icon: AlertTriangle, href: '/admin/overdue' },
