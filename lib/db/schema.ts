@@ -180,10 +180,12 @@ export const reservations = pgTable('reservations', {
   id: serial('id').primaryKey(),
   userId: text('user_id').references(() => users.id),
   bookId: integer('book_id').references(() => books.id),
-  status: text('status').notNull().default('active'), // active, fulfilled, cancelled
+  status: text('status').notNull().default('active'), // active, fulfilled, cancelled, expired
+  queuePosition: integer('queue_position'), // Position in the hold queue (1 = first in line)
   reservedAt: timestamp('reserved_at', { mode: 'date' }).defaultNow(),
+  notifiedAt: timestamp('notified_at', { mode: 'date' }), // When member was notified book is ready
   fulfilledAt: timestamp('fulfilled_at', { mode: 'date' }),
-  expiresAt: timestamp('expires_at', { mode: 'date' }),
+  expiresAt: timestamp('expires_at', { mode: 'date' }), // When the hold expires (48 hours after notification)
 });
 
 // Activity Log table
@@ -236,6 +238,7 @@ export const booksRelations = relations(books, ({ one, many }) => ({
   }),
   copies: many(bookCopies),
   favorites: many(favorites),
+  reservations: many(reservations),
   shelfBooks: many(shelfBooks),
 }));
 
@@ -302,6 +305,17 @@ export const shelfBooksRelations = relations(shelfBooks, ({ one }) => ({
   }),
   book: one(books, {
     fields: [shelfBooks.bookId],
+    references: [books.id],
+  }),
+}));
+
+export const reservationsRelations = relations(reservations, ({ one }) => ({
+  user: one(users, {
+    fields: [reservations.userId],
+    references: [users.id],
+  }),
+  book: one(books, {
+    fields: [reservations.bookId],
     references: [books.id],
   }),
 }));

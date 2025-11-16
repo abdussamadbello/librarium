@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { transactions, bookCopies, fines, activityLog, users, books } from '@/lib/db/schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { IssueBookFormData, ReturnBookFormData } from '@/lib/validations/transaction'
+import { assignNextInQueue } from '@/lib/services/reservations'
 
 // Fine calculation: $0.50 per day overdue
 const FINE_PER_DAY = 0.5
@@ -207,8 +208,18 @@ export async function returnBook(params: ReturnBookParams) {
         },
       })
 
-      return { transaction: updatedTransaction, fine, overdueDays, fineAmount }
+      return { transaction: updatedTransaction, fine, overdueDays, fineAmount, bookId: bookCopy?.bookId }
     })
+
+    // Try to assign book to next person in reservation queue
+    if (result.bookId) {
+      try {
+        await assignNextInQueue(result.bookId)
+      } catch (error) {
+        console.error('Error assigning next in queue:', error)
+        // Don't fail the return if queue assignment fails
+      }
+    }
 
     return result
   } catch (error) {
