@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SessionProvider } from '@/components/providers/session-provider'
+import { Toaster } from '@/components/ui/toaster'
 
 export const metadata: Metadata = {
   title: "Librarium - Library Management System",
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <SessionProvider>
           {children}
+          <Toaster />
         </SessionProvider>
       </body>
     </html>
