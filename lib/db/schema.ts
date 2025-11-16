@@ -225,6 +225,16 @@ export const activityLog = pgTable('activity_log', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
 });
 
+// System Settings table (key-value store for configuration)
+export const systemSettings = pgTable('system_settings', {
+  id: serial('id').primaryKey(),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull(),
+  description: text('description'),
+  category: text('category'), // general, fines, reservations, email, membership
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+});
+
 // Notifications table
 export const notifications = pgTable('notifications', {
   id: serial('id').primaryKey(),

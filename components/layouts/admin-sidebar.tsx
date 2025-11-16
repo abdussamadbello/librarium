@@ -19,6 +19,8 @@ import {
   Clock,
   Building2,
   ScrollText,
+  Package,
+  Warehouse,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -38,12 +40,15 @@ const navItems: NavItem[] = [
   { label: 'QR Checkout', icon: QrCode, href: '/admin/qr-checkout' },
   { label: 'Book QR Codes', icon: QrCode, href: '/admin/book-qr-codes' },
   { label: 'Reservations', icon: Clock, href: '/admin/reservations' },
+  { label: 'Transactions', icon: FileText, href: '/admin/transactions' },
   { label: 'Issued Books', icon: ArrowRight, href: '/admin/issued' },
   { label: 'Returned Books', icon: ArrowLeft, href: '/admin/returned' },
   { label: 'Overdue Books', icon: AlertTriangle, href: '/admin/overdue' },
   { label: 'Fines & Payments', icon: FileText, href: '/admin/fines' },
   { label: 'Staff Management', icon: Users, href: '/admin/staff' },
   { label: 'Email', icon: Mail, href: '/admin/email' },
+  { label: 'Bulk Operations', icon: Package, href: '/admin/bulk-operations' },
+  { label: 'Inventory', icon: Warehouse, href: '/admin/inventory' },
   { label: 'Audit Logs', icon: ScrollText, href: '/admin/audit-logs' },
   { label: 'Reports / Analytics', icon: BarChart2, href: '/admin/reports' },
   { label: 'Settings', icon: Settings, href: '/admin/settings' },
