@@ -4,10 +4,15 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { BookOpen, Calendar, User, Tag, Building, ArrowLeft, Bell, Clock } from 'lucide-react'
+import { BookOpen, Calendar, User, Tag, Building, ArrowLeft, Bell, Clock, Star } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
+import { useSession } from 'next-auth/react'
+import { ReviewForm } from '@/components/reviews/review-form'
+import { ReviewsList } from '@/components/reviews/reviews-list'
+import { RatingStats } from '@/components/reviews/rating-stats'
+import { StarRating } from '@/components/ui/star-rating'
 
 interface BookData {
   book: {
@@ -55,14 +60,22 @@ export default function BookDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
+  const { data: session } = useSession()
   const [bookData, setBookData] = useState<BookData | null>(null)
   const [availability, setAvailability] = useState<AvailabilityData | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
+  const [reviews, setReviews] = useState<any[]>([])
+  const [ratingStats, setRatingStats] = useState<any>(null)
+  const [userReview, setUserReview] = useState<any>(null)
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  const [reviewsLoading, setReviewsLoading] = useState(false)
 
   useEffect(() => {
     fetchBook()
     fetchAvailability()
+    fetchReviews()
+    fetchRatingStats()
   }, [params.id])
 
   const fetchBook = async () => {
@@ -156,6 +169,40 @@ export default function BookDetailPage() {
     } finally {
       setActionLoading(false)
     }
+  }
+
+  const fetchReviews = async () => {
+    setReviewsLoading(true)
+    try {
+      const res = await fetch(`/api/books/${params.id}/reviews?sortBy=recent&limit=10`)
+      if (res.ok) {
+        const data = await res.json()
+        setReviews(data.reviews || [])
+        setUserReview(data.userReview || null)
+      }
+    } catch (error) {
+      console.error('Failed to fetch reviews:', error)
+    } finally {
+      setReviewsLoading(false)
+    }
+  }
+
+  const fetchRatingStats = async () => {
+    try {
+      const res = await fetch(`/api/books/${params.id}/reviews/stats`)
+      if (res.ok) {
+        const data = await res.json()
+        setRatingStats(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch rating stats:', error)
+    }
+  }
+
+  const handleReviewChange = () => {
+    fetchReviews()
+    fetchRatingStats()
+    setShowReviewForm(false)
   }
 
   if (loading) {
@@ -431,6 +478,109 @@ export default function BookDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Reviews & Ratings */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-serif text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <Star className="w-7 h-7 fill-amber-400 text-amber-400" />
+            Reviews & Ratings
+          </h2>
+          {ratingStats && ratingStats.totalReviews > 0 && (
+            <div className="flex items-center gap-2">
+              <StarRating rating={ratingStats.averageRating} size="md" />
+              <span className="text-sm text-slate-600">
+                {ratingStats.averageRating.toFixed(1)} ({ratingStats.totalReviews})
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Rating Statistics */}
+          <div className="lg:col-span-1">
+            {ratingStats && (
+              <RatingStats
+                averageRating={ratingStats.averageRating}
+                totalReviews={ratingStats.totalReviews}
+                verifiedReviews={ratingStats.verifiedReviews}
+                ratingDistribution={ratingStats.ratingDistribution}
+              />
+            )}
+          </div>
+
+          {/* Reviews List & Form */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Write Review Section */}
+            {session?.user && (
+              <Card className="shadow-soft border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>
+                      {userReview ? 'Your Review' : 'Write a Review'}
+                    </span>
+                    {userReview && !showReviewForm && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowReviewForm(true)}
+                        className="border-primary/30 text-primary hover:bg-primary/10"
+                      >
+                        Edit Review
+                      </Button>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {!userReview || showReviewForm ? (
+                    <ReviewForm
+                      bookId={Number(params.id)}
+                      existingReview={userReview}
+                      onSuccess={handleReviewChange}
+                    />
+                  ) : (
+                    <div className="space-y-3">
+                      <StarRating rating={userReview.rating} size="md" />
+                      {userReview.reviewText && (
+                        <p className="text-slate-700 leading-relaxed">
+                          {userReview.reviewText}
+                        </p>
+                      )}
+                      <p className="text-xs text-slate-500">
+                        Posted on {new Date(userReview.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Reviews List */}
+            <Card className="shadow-soft">
+              <CardHeader>
+                <CardTitle>
+                  {reviews.length > 0
+                    ? `All Reviews (${reviews.length})`
+                    : 'Reviews'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {reviewsLoading ? (
+                  <div className="text-center py-12">
+                    <p className="text-slate-600">Loading reviews...</p>
+                  </div>
+                ) : (
+                  <ReviewsList
+                    reviews={reviews}
+                    currentUserId={session?.user?.id}
+                    onReviewChange={handleReviewChange}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
