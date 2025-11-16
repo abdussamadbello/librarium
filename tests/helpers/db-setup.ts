@@ -28,19 +28,22 @@ function getDb() {
 
 /**
  * Reset the test database to a clean state
- * Drops all tables and recreates them with migrations
+ * Drops all tables and recreates them using drizzle push
  */
 export async function resetDatabase() {
   const db = getDb();
 
   try {
     // Drop all tables (cascade to remove all data and constraints)
-    await db.execute(`
+    await db.execute(sql`
       DROP SCHEMA IF EXISTS public CASCADE;
       CREATE SCHEMA public;
       GRANT ALL ON SCHEMA public TO postgres;
       GRANT ALL ON SCHEMA public TO public;
     `);
+
+    // Enable pgvector extension
+    await db.execute(sql`CREATE EXTENSION IF NOT EXISTS vector;`);
 
     // Run migrations to recreate tables
     await migrate(db, { migrationsFolder: './drizzle' });

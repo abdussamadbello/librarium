@@ -31,9 +31,9 @@ async function globalSetup(config: FullConfig) {
     console.log('🔐 Creating auth states for test users...');
 
     // Admin auth state
-    await page.goto(`${baseURL}/sign-in`);
-    await page.fill('input[name="email"]', 'admin@test.com');
-    await page.fill('input[name="password"]', 'TestAdmin123!');
+    await page.goto(`${baseURL}/login`);
+    await page.fill('#email', 'admin@test.com');
+    await page.fill('#password', 'TestPassword123!');
     await page.click('button[type="submit"]');
     await page.waitForURL(`${baseURL}/admin/dashboard`);
     await context.storageState({ path: 'tests/.auth/admin.json' });
@@ -41,9 +41,9 @@ async function globalSetup(config: FullConfig) {
 
     // Member auth state
     await context.clearCookies();
-    await page.goto(`${baseURL}/sign-in`);
-    await page.fill('input[name="email"]', 'member@test.com');
-    await page.fill('input[name="password"]', 'TestMember123!');
+    await page.goto(`${baseURL}/login`);
+    await page.fill('#email', 'member@test.com');
+    await page.fill('#password', 'TestPassword123!');
     await page.click('button[type="submit"]');
     await page.waitForURL(`${baseURL}/member/dashboard`);
     await context.storageState({ path: 'tests/.auth/member.json' });
@@ -51,9 +51,9 @@ async function globalSetup(config: FullConfig) {
 
     // Premium member auth state
     await context.clearCookies();
-    await page.goto(`${baseURL}/sign-in`);
-    await page.fill('input[name="email"]', 'premium@test.com');
-    await page.fill('input[name="password"]', 'TestPremium123!');
+    await page.goto(`${baseURL}/login`);
+    await page.fill('#email', 'premium@test.com');
+    await page.fill('#password', 'TestPassword123!');
     await page.click('button[type="submit"]');
     await page.waitForURL(`${baseURL}/member/dashboard`);
     await context.storageState({ path: 'tests/.auth/premium.json' });
@@ -61,9 +61,9 @@ async function globalSetup(config: FullConfig) {
 
     // Staff auth state
     await context.clearCookies();
-    await page.goto(`${baseURL}/sign-in`);
-    await page.fill('input[name="email"]', 'staff@test.com');
-    await page.fill('input[name="password"]', 'TestStaff123!');
+    await page.goto(`${baseURL}/login`);
+    await page.fill('#email', 'staff@test.com');
+    await page.fill('#password', 'TestPassword123!');
     await page.click('button[type="submit"]');
     await page.waitForURL(`${baseURL}/admin/dashboard`);
     await context.storageState({ path: 'tests/.auth/staff.json' });
