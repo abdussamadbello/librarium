@@ -460,7 +460,6 @@ export async function getUserReservations(userId: string) {
         authorId: books.authorId,
         categoryId: books.categoryId,
         publisher: books.publisher,
-        publisherId: books.publisherId,
         publicationYear: books.publicationYear,
         language: books.language,
         description: books.description,
