@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import { reservations, books, users, activityLog, notifications } from '@/lib/db/schema'
 import { eq, and, isNull, lt, desc, sql, asc } from 'drizzle-orm'
+import { sendReservationReadyEmail } from '@/lib/services/email'
 
 // Reservation expires 48 hours after book becomes available
 const HOLD_EXPIRY_HOURS = 48
@@ -232,7 +233,24 @@ export async function fulfillReservation(params: FulfillReservationParams) {
       return fulfilled
     })
 
-    // TODO: Send email notification when email service is integrated
+    // Send email notification
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, reservation.userId!)).limit(1)
+      const [book] = await db.select().from(books).where(eq(books.id, reservation.bookId!)).limit(1)
+
+      if (user?.email && book?.title) {
+        await sendReservationReadyEmail({
+          to: user.email,
+          userName: user.name || 'Member',
+          bookTitle: book.title,
+          expiresAt,
+          reservationId,
+        })
+      }
+    } catch (emailError) {
+      console.error('Error sending reservation ready email:', emailError)
+      // Don't fail the fulfillment if email fails
+    }
 
     return result
   } catch (error) {
@@ -311,7 +329,24 @@ export async function assignNextInQueue(bookId: number) {
       return assigned
     })
 
-    // TODO: Send email notification when email service is integrated
+    // Send email notification
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, nextReservation.userId!)).limit(1)
+      const [bookDetails] = await db.select().from(books).where(eq(books.id, bookId)).limit(1)
+
+      if (user?.email && bookDetails?.title) {
+        await sendReservationReadyEmail({
+          to: user.email,
+          userName: user.name || 'Member',
+          bookTitle: bookDetails.title,
+          expiresAt,
+          reservationId: nextReservation.id,
+        })
+      }
+    } catch (emailError) {
+      console.error('Error sending reservation ready email:', emailError)
+      // Don't fail the assignment if email fails
+    }
 
     return result
   } catch (error) {
