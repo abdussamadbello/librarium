@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import * as schema from '@/lib/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -415,4 +416,214 @@ export async function createTestFine(data: {
     .returning();
 
   return fine;
+}
+
+/**
+ * Create a complete borrowing scenario
+ * Returns: { user, book, bookCopy, transaction }
+ */
+export async function createBorrowingScenario(options?: {
+  membershipType?: 'standard' | 'premium' | 'student';
+  daysAgo?: number;
+  dueInDays?: number;
+  isOverdue?: boolean;
+}) {
+  const db = getDb();
+
+  // Create member if not using existing
+  const membershipType = options?.membershipType || 'standard';
+  const testMember = await createTestUser({
+    email: `test-member-${Date.now()}@test.com`,
+    name: `Test Member ${Date.now()}`,
+    role: 'member',
+    membershipType,
+  });
+
+  // Create book and copy
+  const testBook = await createTestBook({
+    title: `Test Book ${Date.now()}`,
+    totalCopies: 3,
+    availableCopies: 3,
+  });
+
+  // Get or create book copy
+  const [bookCopy] = await db
+    .select()
+    .from(schema.bookCopies)
+    .where(eq(schema.bookCopies.bookId, testBook.id))
+    .limit(1);
+
+  let copy = bookCopy;
+  if (!copy) {
+    [copy] = await db
+      .insert(schema.bookCopies)
+      .values({
+        bookId: testBook.id,
+        copyNumber: 1,
+        status: 'borrowed',
+        condition: 'good',
+        qrCode: `QR-BOOK-${testBook.id}-1`,
+      })
+      .returning();
+  }
+
+  // Calculate dates
+  const checkoutDate = new Date();
+  if (options?.daysAgo) {
+    checkoutDate.setDate(checkoutDate.getDate() - options.daysAgo);
+  }
+
+  let dueDate = new Date(checkoutDate);
+  if (options?.isOverdue) {
+    // Set due date in the past
+    dueDate.setDate(dueDate.getDate() - 5);
+  } else if (options?.dueInDays !== undefined) {
+    dueDate.setDate(checkoutDate.getDate() + options.dueInDays);
+  } else {
+    // Default: 30 days from checkout
+    dueDate.setDate(checkoutDate.getDate() + 30);
+  }
+
+  // Create transaction
+  const transaction = await createTestTransaction({
+    userId: testMember.id,
+    bookCopyId: copy.id,
+    checkoutDate,
+    dueDate,
+    returnDate: null,
+  });
+
+  // Update book copy status and available count
+  await db
+    .update(schema.bookCopies)
+    .set({ status: 'borrowed' })
+    .where(eq(schema.bookCopies.id, copy.id));
+
+  await db
+    .update(schema.books)
+    .set({ availableCopies: testBook.availableCopies - 1 })
+    .where(eq(schema.books.id, testBook.id));
+
+  return {
+    user: testMember,
+    book: testBook,
+    bookCopy: copy,
+    transaction,
+  };
+}
+
+/**
+ * Create an overdue borrowing scenario with fine
+ */
+export async function createOverdueScenario(daysOverdue: number = 15) {
+  const db = getDb();
+
+  // Create borrowing scenario with overdue book
+  const scenario = await createBorrowingScenario({
+    isOverdue: true,
+    daysAgo: 30 + daysOverdue,
+  });
+
+  // Calculate fine amount ($0.50 per day)
+  const fineAmount = (daysOverdue * 0.5).toFixed(2);
+
+  // Create fine
+  const fine = await createTestFine({
+    userId: scenario.user.id,
+    transactionId: scenario.transaction.id,
+    amount: fineAmount,
+    reason: 'overdue',
+    status: 'pending',
+    daysOverdue,
+  });
+
+  return {
+    ...scenario,
+    fine,
+    daysOverdue,
+    fineAmount,
+  };
+}
+
+/**
+ * Get an available book copy for borrowing
+ */
+export async function getAvailableBookCopy() {
+  const db = getDb();
+
+  const [copy] = await db
+    .select()
+    .from(schema.bookCopies)
+    .where(eq(schema.bookCopies.status, 'available'))
+    .limit(1);
+
+  return copy;
+}
+
+/**
+ * Return a book (mark transaction as returned)
+ */
+export async function returnBook(transactionId: number) {
+  const db = getDb();
+
+  const [transaction] = await db
+    .update(schema.transactions)
+    .set({ returnDate: new Date() })
+    .where(eq(schema.transactions.id, transactionId))
+    .returning();
+
+  // Update book copy status
+  if (transaction.bookCopyId) {
+    await db
+      .update(schema.bookCopies)
+      .set({ status: 'available' })
+      .where(eq(schema.bookCopies.id, transaction.bookCopyId));
+
+    // Get book ID and increment available copies
+    const [copy] = await db
+      .select()
+      .from(schema.bookCopies)
+      .where(eq(schema.bookCopies.id, transaction.bookCopyId));
+
+    if (copy) {
+      await db.execute(
+        sql`UPDATE books SET available_copies = available_copies + 1 WHERE id = ${copy.bookId}`
+      );
+    }
+  }
+
+  return transaction;
+}
+
+/**
+ * Create payment for a fine
+ */
+export async function createPayment(data: {
+  fineId: number;
+  userId: string;
+  amount: string;
+  paymentMethod?: string;
+  processedBy?: string;
+}) {
+  const db = getDb();
+
+  const [payment] = await db
+    .insert(schema.payments)
+    .values({
+      fineId: data.fineId,
+      userId: data.userId,
+      amount: data.amount,
+      paymentMethod: data.paymentMethod || 'cash',
+      processedBy: data.processedBy,
+      createdAt: new Date(),
+    })
+    .returning();
+
+  // Mark fine as paid
+  await db
+    .update(schema.fines)
+    .set({ status: 'paid' })
+    .where(eq(schema.fines.id, data.fineId));
+
+  return payment;
 }
