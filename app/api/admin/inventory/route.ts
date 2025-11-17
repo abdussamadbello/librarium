@@ -66,9 +66,9 @@ export async function GET(req: NextRequest) {
       lowStock: lowStockBooks,
       highDemand: highDemandBooks,
       stats: {
-        totalBooks: totalBooks[0].count,
+        totalBooks: totalBooks[0]?.count ?? 0,
         lowStock: lowStockBooks.length,
-        outOfStock: outOfStock[0].count,
+        outOfStock: outOfStock[0]?.count ?? 0,
         highDemand: highDemandBooks.length,
       },
     })

@@ -7,7 +7,7 @@ import { canAccessAdmin } from '@/lib/auth/roles'
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -16,7 +16,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const fineId = parseInt(params.id)
+    const { id } = await params
+    const fineId = parseInt(id)
 
     const [updatedFine] = await db
       .update(fines)

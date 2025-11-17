@@ -42,19 +42,22 @@ export async function resetDatabase() {
       GRANT ALL ON SCHEMA public TO public;
     `);
 
-    // Run migrations using psql directly (workaround for drizzle migrate issue)
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
-      throw new Error('DATABASE_URL is not defined');
-    }
+    // Enable pgvector extension (required for vector columns)
+    await db.execute(sql`CREATE EXTENSION IF NOT EXISTS vector;`);
 
-    // Extract connection details from DATABASE_URL
-    const url = new URL(databaseUrl);
+    // Run migrations by executing the SQL file directly
+    const fs = require('fs');
     const migrationFile = path.resolve(process.cwd(), 'drizzle/0000_sturdy_photon.sql');
+    const migrationSQL = fs.readFileSync(migrationFile, 'utf8');
     
-    execSync(`PGPASSWORD="${url.password}" psql -h ${url.hostname} -p ${url.port} -U ${url.username} -d ${url.pathname.slice(1)} -f "${migrationFile}"`, {
-      stdio: 'pipe',
-    });
+    // Split the SQL into individual statements and execute them
+    const statements = migrationSQL.split('--> statement-breakpoint');
+    for (const statement of statements) {
+      const trimmed = statement.trim();
+      if (trimmed && !trimmed.startsWith('--')) {
+        await db.execute(sql.raw(trimmed));
+      }
+    }
 
     console.log('✅ Database reset complete');
   } catch (error) {

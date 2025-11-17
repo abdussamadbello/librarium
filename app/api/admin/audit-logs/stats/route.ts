@@ -58,9 +58,9 @@ export async function GET(req: NextRequest) {
       .where(gte(activityLog.createdAt, weekAgo))
 
     return NextResponse.json({
-      total: totalCount.count,
-      today: todayCount.count,
-      thisWeek: weekCount.count,
+      total: totalCount?.count ?? 0,
+      today: todayCount?.count ?? 0,
+      thisWeek: weekCount?.count ?? 0,
       byAction: actionStats,
       byEntity: entityStats,
     })

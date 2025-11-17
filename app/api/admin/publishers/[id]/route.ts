@@ -8,7 +8,7 @@ import { publisherSchema } from '@/lib/validations/category'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -17,7 +17,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const publisherId = parseInt(params.id)
+    const { id } = await params
+    const publisherId = parseInt(id)
 
     const [publisher] = await db
       .select()
@@ -36,7 +37,7 @@ export async function GET(
 
     return NextResponse.json({
       ...publisher,
-      bookCount: bookCount.count,
+      bookCount: bookCount?.count ?? 0,
     })
   } catch (error) {
     console.error('Error fetching publisher:', error)
@@ -46,7 +47,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -55,7 +56,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const publisherId = parseInt(params.id)
+    const { id } = await params
+    const publisherId = parseInt(id)
     const body = await req.json()
     const validatedData = publisherSchema.parse(body)
 
@@ -95,7 +97,7 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -104,7 +106,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const publisherId = parseInt(params.id)
+    const { id } = await params
+    const publisherId = parseInt(id)
 
     // Check if publisher has books
     const [bookCount] = await db
@@ -112,9 +115,9 @@ export async function DELETE(
       .from(books)
       .where(eq(books.publisherId, publisherId))
 
-    if (bookCount.count > 0) {
+    if ((bookCount?.count ?? 0) > 0) {
       return NextResponse.json(
-        { error: `Cannot delete publisher with ${bookCount.count} associated books` },
+        { error: `Cannot delete publisher with ${bookCount?.count ?? 0} associated books` },
         { status: 400 }
       )
     }

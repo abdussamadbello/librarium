@@ -28,6 +28,7 @@ export default function BulkBooksImportPage() {
   const [preview, setPreview] = useState<BookPreview[]>([])
   const [importing, setImporting] = useState(false)
   const [completed, setCompleted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [stats, setStats] = useState({
     total: 0,
     valid: 0,
@@ -47,7 +48,14 @@ export default function BulkBooksImportPage() {
     // Simple CSV parsing (in production, use a library like papaparse)
     const text = await file.text()
     const lines = text.split('\n').filter(line => line.trim())
-    const headers = lines[0].split(',').map(h => h.trim())
+
+    if (lines.length === 0) {
+      setError('CSV file appears to be empty')
+      return
+    }
+
+    // At this point, lines.length > 0, so lines[0] is guaranteed to exist
+    const headers = lines[0]!.split(',').map(h => h.trim())
     const data = lines.slice(1).map(line => {
       const values = line.split(',').map(v => v.trim())
       const obj: any = {}
@@ -179,6 +187,13 @@ export default function BulkBooksImportPage() {
           <p className="text-slate-600 text-sm">Import multiple books from CSV file</p>
         </div>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       {/* File Upload */}
       {!preview.length && (

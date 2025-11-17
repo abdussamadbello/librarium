@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
     const [newStaff] = await db
       .insert(users)
       .values({
+        id: crypto.randomUUID(),
         name,
         email,
         password: hashedPassword,
@@ -96,6 +97,10 @@ export async function POST(req: NextRequest) {
         createdAt: new Date(),
       })
       .returning()
+
+    if (!newStaff) {
+      return NextResponse.json({ error: 'Failed to create staff member' }, { status: 500 })
+    }
 
     return NextResponse.json(
       {

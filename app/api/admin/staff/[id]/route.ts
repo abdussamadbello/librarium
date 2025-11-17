@@ -7,7 +7,7 @@ import { canAccessAdmin } from '@/lib/auth/roles'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -15,6 +15,8 @@ export async function GET(
     if (!session?.user || !canAccessAdmin(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const { id } = await params
 
     const [staff] = await db
       .select({
@@ -26,7 +28,7 @@ export async function GET(
         createdAt: users.createdAt,
       })
       .from(users)
-      .where(eq(users.id, params.id))
+      .where(eq(users.id, id))
 
     if (!staff) {
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 })
@@ -41,7 +43,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -49,6 +51,8 @@ export async function PUT(
     if (!session?.user || !canAccessAdmin(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const { id } = await params
 
     const body = await req.json()
     const { name, email, role } = body
@@ -68,7 +72,7 @@ export async function PUT(
         ...(email && { email }),
         ...(role && { role }),
       })
-      .where(eq(users.id, params.id))
+      .where(eq(users.id, id))
       .returning()
 
     if (!updatedStaff) {
@@ -89,7 +93,7 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -98,8 +102,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     // Prevent deleting yourself
-    if (session.user.id === params.id) {
+    if (session.user.id === id) {
       return NextResponse.json(
         { error: 'Cannot delete your own account' },
         { status: 400 }
@@ -108,7 +114,7 @@ export async function DELETE(
 
     const [deletedStaff] = await db
       .delete(users)
-      .where(eq(users.id, params.id))
+      .where(eq(users.id, id))
       .returning()
 
     if (!deletedStaff) {

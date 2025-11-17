@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth/config'
 import { db } from '@/lib/db'
 import { transactions, users, bookCopies, books, authors } from '@/lib/db/schema'
-import { and, isNull, eq, gte, desc } from 'drizzle-orm'
+import { and, isNull, eq, gte, desc, aliasedTable } from 'drizzle-orm'
 import { canAccessAdmin } from '@/lib/auth/roles'
 
 export async function GET(req: NextRequest) {
@@ -15,6 +15,8 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const limit = parseInt(searchParams.get('limit') || '100')
+
+    const issuedByUser = aliasedTable(users, 'issuedByUser')
 
     // Get all currently issued books (not returned)
     const issuedTransactions = await db
@@ -38,8 +40,8 @@ export async function GET(req: NextRequest) {
           copyNumber: bookCopies.copyNumber,
         },
         issuedByUser: {
-          id: users.id,
-          name: users.name,
+          id: issuedByUser.id,
+          name: issuedByUser.name,
         },
       })
       .from(transactions)
@@ -47,10 +49,7 @@ export async function GET(req: NextRequest) {
       .leftJoin(bookCopies, eq(transactions.bookCopyId, bookCopies.id))
       .leftJoin(books, eq(bookCopies.bookId, books.id))
       .leftJoin(authors, eq(books.authorId, authors.id))
-      .leftJoin(
-        { issuedByUser: users },
-        eq(transactions.issuedBy, users.id)
-      )
+      .leftJoin(issuedByUser, eq(transactions.issuedBy, issuedByUser.id))
       .where(
         and(
           eq(transactions.type, 'checkout'),
